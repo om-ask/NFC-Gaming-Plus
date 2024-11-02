@@ -24,12 +24,16 @@ class HackContainer:
         self.contains = None
 
 
+reading = HackContainer()
+
+
 async def read_forever(readings_queue: asyncio.Queue):
     # Open device
-    reading = HackContainer()
+    global reading
 
     def on_connect(tag):
         # If contains records
+        global reading
         if result.ndef is not None and len(result.ndef.records) != 0:
             record = result.ndef.records[0]
             # If contains valid record
