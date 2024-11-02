@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 async def publish_forever(readings_queue: asyncio.Queue):
     while True:
+        print("Waiting for QUEUE")
         reading: NFCReading = await readings_queue.get()
         print("Logger")
         logger.info("Received reading on publish queue", NFCReading)
@@ -29,3 +30,4 @@ async def publish_forever(readings_queue: asyncio.Queue):
 
         # Disconnect from the MQTT broker.
         await client.disconnect()
+o

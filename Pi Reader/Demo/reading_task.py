@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 import ndef
 import nfc
@@ -46,6 +47,9 @@ async def read_forever(readings_queue: asyncio.Queue):
             else:
                 print("INVALID RECORD", record)
 
+        else:
+            return False
+
         return True
 
     rdwr_options = {
@@ -55,7 +59,8 @@ async def read_forever(readings_queue: asyncio.Queue):
     with nfc.ContactlessFrontend("usb") as clf:
         while True:
             # Read Tag
-            result = clf.connect(rdwr=rdwr_options)
+            started = time.time()
+            result = clf.connect(rdwr=rdwr_options, terminate=lambda: time.time() - started > 1)
 
             # If empty
             if result is None:
