@@ -61,7 +61,7 @@ async def read_forever(readings_queue: asyncio.Queue):
             rdwr_options = {
                 'on-connect': partial(on_connect, returned_reading),
             }
-            result = await asyncio.to_thread(clf.connect(rdwr=rdwr_options))
+            result = await asyncio.to_thread(partial(clf.connect, rdwr=rdwr_options))
 
             # If empty
             if result is None:
