@@ -30,8 +30,8 @@ async def read_forever(readings_queue: asyncio.Queue):
 
     def on_connect(tag):
         # If contains records
-        if result.ndef is not None and len(result.ndef.records) != 0:
-            record = result.ndef.records[0]
+        if tag.ndef is not None and len(tag.ndef.records) != 0:
+            record = tag.ndef.records[0]
             # If contains valid record
             if isinstance(record, ndef.TextRecord):
                 print(record)
