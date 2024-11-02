@@ -46,6 +46,7 @@ async def read_forever(readings_queue: asyncio.Queue):
 
             else:
                 print("INVALID RECORD", record)
+                return False
 
         else:
             return False
@@ -78,7 +79,8 @@ async def read_forever(readings_queue: asyncio.Queue):
                 await readings_queue.put(reading.contains)
                 reading.contains = None
 
-            await asyncio.sleep(1)
+            # Allow asyncio to switch context
+            await asyncio.sleep(0.1)
 
             print("Waiting")
 
