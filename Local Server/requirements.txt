@@ -1,6 +1,8 @@
 # Beta version of amqtt that works
 amqtt==0.11.0b1
 
+setuptools
+
 # Asynchronous HTTP Library https://docs.aiohttp.org/en/stable/
 # This will be used to connect to the remote api
 aiohttp

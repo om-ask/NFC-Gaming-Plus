@@ -1,5 +1,7 @@
 # Beta version of amqtt that works
 amqtt==0.11.0b1
 
+setuptools
+
 # The fixed fork of nfcpy that works with our ACR122U9 Revision 216
 git+https://github.com/gaitQ/nfcpy.git#egg=nfcpy

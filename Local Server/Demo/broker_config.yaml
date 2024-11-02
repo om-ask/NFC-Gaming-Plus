@@ -1,0 +1,17 @@
+listeners:
+  default:
+    max-connections: 100
+    type: tcp
+  tcp1:
+    bind: localhost:1883
+
+auth:
+  allow-anonymous: true
+
+topic-check:
+  enabled: true
+  acl:
+    nfc-reader: ['nfc/read']
+    anonymous:  ['nfc/read']
+
+#timeout-disconnect-delay: 2
