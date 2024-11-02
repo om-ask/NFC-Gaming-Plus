@@ -4,6 +4,8 @@ import asyncio
 from reading_task import read_forever
 from publish import publish_forever
 
+logger = logging.getLogger(__name__)
+
 
 async def main():
     buffer = asyncio.Queue()

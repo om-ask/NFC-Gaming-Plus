@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from amqtt.client import MQTTClient
 from amqtt.mqtt.constants import QOS_1
@@ -8,10 +9,13 @@ from reading_task import NFCReading
 SERVER_ADDRESS = "mqtt://192.168.1.2:1883"
 TOPIC = "nfc/read"
 
+logger = logging.getLogger(__name__)
+
 
 async def publish_forever(readings_queue: asyncio.Queue):
     while True:
         reading: NFCReading = await readings_queue.get()
+        logger.info("Received reading on publish queue", NFCReading)
 
         # Connect to mqtt broker
         client = MQTTClient()

@@ -17,6 +17,9 @@ class NFCReading:
         return (f"{self.reader_id}\n"
                 f"{self.user_id}")
 
+    def __str__(self):
+        return self.generate_payload()
+
 
 class HackContainer:
 
