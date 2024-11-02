@@ -80,7 +80,7 @@ async def read_forever(readings_queue: asyncio.Queue):
                 reading.contains = None
 
             # Allow asyncio to switch context
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(1)
 
             print("Waiting")
 

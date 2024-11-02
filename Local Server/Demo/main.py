@@ -35,7 +35,7 @@ async def main():
 
 if __name__ == '__main__':
     # Start logger
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     # Print ip
     # print("Opening broker at", socket.getaddrinfo(socket.gethostname()))

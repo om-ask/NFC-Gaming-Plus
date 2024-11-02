@@ -24,7 +24,7 @@ async def publish_forever(readings_queue: asyncio.Queue):
         await client.connect(SERVER_ADDRESS)
 
         # Publish message
-        await client.publish(TOPIC, bytes(reading.generate_payload()), qos=QOS_1)
+        await client.publish(TOPIC, bytes(reading.generate_payload(), 'utf-8'), qos=QOS_1)
 
         # Disconnect from the MQTT broker.
         await client.disconnect()

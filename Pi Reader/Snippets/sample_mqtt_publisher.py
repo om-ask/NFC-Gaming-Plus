@@ -16,7 +16,6 @@ async def test_coro():
     await C.connect('mqtt://192.168.0.195:1883')
     print("Connected", flush=True)
 
-
     # Wait for all publish tasks to complete.
     await C.publish('nfc/writer1', b'HELLO WORLD', qos=QOS_2)
     print("Messages published", flush=True)

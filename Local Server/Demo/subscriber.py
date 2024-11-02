@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 async def subscribe_and_listen_forever(pipeline: PipeLine):
     client = MQTTClient()
 
-    await client.connect('mqtt://localhost:1883')
+    await client.connect('mqtt://192.168.1.2:1883')
     await client.subscribe([
-        ('nfc/*', QOS_2)])
+        ('nfc/read', QOS_2)])
 
     # Run forever
     try:
@@ -25,9 +25,9 @@ async def subscribe_and_listen_forever(pipeline: PipeLine):
 
             # Extract message payload
             packet = message.publish_packet
-            print(str(packet.payload.data))
+            print("MESSAGE RECEIVED", str(packet.payload.data, 'utf-8'))
 
-            message_payload = str(packet.payload.data).splitlines()
+            message_payload = str(packet.payload.data, 'utf-8').splitlines()
 
             # FORMAT OF MESSAGE PAYLOAD
             # FIRST LINE READER ID
@@ -46,5 +46,5 @@ async def subscribe_and_listen_forever(pipeline: PipeLine):
 
     finally:
         # Unsubscribe and disconnect
-        await client.unsubscribe(['nfc/*'])
+        await client.unsubscribe(['nfc/read'])
         await client.disconnect()

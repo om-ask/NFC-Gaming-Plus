@@ -27,7 +27,7 @@ class PipeLine:
         return await self._published_messages.get()
 
     async def add_processed_message(self, reading: Payload):
-        await self._published_messages.put(reading)
+        await self._processed_messages.put(reading)
 
     async def get_processed_message(self):
-        return await self._published_messages.get()
+        return await self._processed_messages.get()
