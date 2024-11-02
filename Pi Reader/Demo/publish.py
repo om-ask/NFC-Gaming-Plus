@@ -30,4 +30,3 @@ async def publish_forever(readings_queue: asyncio.Queue):
 
         # Disconnect from the MQTT broker.
         await client.disconnect()
-o
