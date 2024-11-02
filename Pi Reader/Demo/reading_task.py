@@ -68,6 +68,7 @@ async def read_forever(readings_queue: asyncio.Queue):
                 break
 
             if reading.contains:
+                print("reading", reading.contains)
                 await readings_queue.put(reading.contains)
                 reading.contains = None
 
