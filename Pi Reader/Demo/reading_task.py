@@ -1,8 +1,9 @@
 import asyncio
-import time
-
 import ndef
 import nfc
+
+from functools import partial
+
 
 # TODO ENVIRONMENT VARIABLE FOR READER
 READER_ID = "A"
@@ -22,47 +23,45 @@ class NFCReading:
         return self.generate_payload()
 
 
-class HackContainer:
-
+class ReturnContainer:
     def __init__(self):
-        self.contains = None
+        self.item = None
+
+
+def on_connect(return_result: ReturnContainer, tag):
+    # If contains records
+    if tag.ndef is not None and len(tag.ndef.records) != 0:
+        record = tag.ndef.records[0]
+        # If contains valid record
+        if isinstance(record, ndef.TextRecord):
+            print(record)
+            user_id = record.text
+
+            # Write to return container
+            return_result.item = NFCReading(READER_ID, user_id)
+
+        else:
+            print("INVALID RECORD", record)
+            return False
+
+    else:
+        return False
+
+    return True
 
 
 async def read_forever(readings_queue: asyncio.Queue):
+
     # Open device
-    reading = HackContainer()
-
-    def on_connect(tag):
-        # If contains records
-        if tag.ndef is not None and len(tag.ndef.records) != 0:
-            record = tag.ndef.records[0]
-            # If contains valid record
-            if isinstance(record, ndef.TextRecord):
-                print(record)
-                user_id = record.text
-
-                # Push  reading to queue
-                reading.contains = NFCReading(READER_ID, user_id)
-
-            else:
-                print("INVALID RECORD", record)
-                return False
-
-        else:
-            return False
-
-        return True
-
-    rdwr_options = {
-        'on-connect': on_connect,
-    }
-
     with nfc.ContactlessFrontend("usb") as clf:
 
         while True:
+            returned_reading = ReturnContainer()
             # Read Tag
-            started = time.time()
-            result = clf.connect(rdwr=rdwr_options, terminate=lambda: time.time() - started > 1)
+            rdwr_options = {
+                'on-connect': partial(on_connect, returned_reading),
+            }
+            result = await asyncio.to_thread(clf.connect(rdwr=rdwr_options))
 
             # If empty
             if result is None:
@@ -74,13 +73,8 @@ async def read_forever(readings_queue: asyncio.Queue):
                 print("Error")
                 break
 
-            if reading.contains:
-                print("reading", reading.contains)
-                await readings_queue.put(reading.contains)
-                reading.contains = None
-
-            # Allow asyncio to switch context
-            await asyncio.sleep(1)
+            if returned_reading.item:
+                await readings_queue.put(returned_reading.item)
 
             print("Waiting")
 
