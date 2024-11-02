@@ -18,37 +18,55 @@ class NFCReading:
                 f"{self.user_id}")
 
 
+class HackContainer:
+
+    def __init__(self):
+        self.contains = None
+
+
 async def read_forever(readings_queue: asyncio.Queue):
     # Open device
+    reading = HackContainer()
+
+    def on_connect(tag):
+        # If contains records
+        if result.ndef is not None and len(result.ndef.records) != 0:
+            record = result.ndef.records[0]
+            # If contains valid record
+            if isinstance(record, ndef.TextRecord):
+                print(record)
+                user_id = record.text
+
+                # Push  reading to queue
+                reading.contains = NFCReading(READER_ID, user_id)
+
+            else:
+                print("INVALID RECORD", record)
+
+        return True
+
+    rdwr_options = {
+        'on-connect': on_connect,
+    }
+
     with nfc.ContactlessFrontend("usb") as clf:
         while True:
             # Read Tag
-            result_tag = clf.connect()
+            result = clf.connect(rdwr=rdwr_options)
 
             # If empty
-            if result_tag is None:
+            if result is None:
                 print("None")
                 continue
 
             # If error
-            if not result_tag:
+            if not result:
                 print("Error")
                 break
 
-            # If contains records
-            if result_tag.ndef is not None and len(result_tag.ndef.records) != 0:
-                record = result_tag.ndef.records[0]
-                # If contains valid record
-                if isinstance(record, ndef.TextRecord):
-                    print(record)
-                    user_id = record.text
-
-                    # Push  reading to queue
-                    reading = NFCReading(READER_ID, user_id)
-                    await readings_queue.put(reading)
-
-                else:
-                    print("INVALID RECORD", record)
+            if reading.contains:
+                await readings_queue.put(reading.contains)
+                reading.contains = None
 
             print("Waiting")
 
