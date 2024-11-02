@@ -12,6 +12,8 @@ TOPIC = "nfc/read"
 logger = logging.getLogger(__name__)
 
 
+# TODO Add cancelling
+
 async def publish_forever(readings_queue: asyncio.Queue):
     while True:
         reading: NFCReading = await readings_queue.get()
