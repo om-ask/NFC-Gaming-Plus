@@ -12,6 +12,7 @@ async def main():
 
     async with asyncio.TaskGroup() as task_group:
         task_group.create_task(read_forever(buffer))
+        print("Task 1")
         task_group.create_task(publish_forever(buffer))
 
 

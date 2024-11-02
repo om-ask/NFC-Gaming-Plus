@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 async def publish_forever(readings_queue: asyncio.Queue):
     while True:
         reading: NFCReading = await readings_queue.get()
+        print("Logger")
         logger.info("Received reading on publish queue", NFCReading)
 
         # Connect to mqtt broker
