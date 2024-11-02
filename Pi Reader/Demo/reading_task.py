@@ -57,6 +57,7 @@ async def read_forever(readings_queue: asyncio.Queue):
     }
 
     with nfc.ContactlessFrontend("usb") as clf:
+
         while True:
             # Read Tag
             started = time.time()
@@ -76,6 +77,8 @@ async def read_forever(readings_queue: asyncio.Queue):
                 print("reading", reading.contains)
                 await readings_queue.put(reading.contains)
                 reading.contains = None
+
+            await asyncio.sleep(1)
 
             print("Waiting")
 
