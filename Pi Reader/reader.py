@@ -1,6 +1,9 @@
 import asyncio
+import ndef
+import nfc
 
 from readings import NFCReading
+
 
 class Reader:
 

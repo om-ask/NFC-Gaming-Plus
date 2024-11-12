@@ -1,5 +1,6 @@
 import asyncio
 
+from amqtt.client import MQTTClient
 from readings import NFCReading
 
 
