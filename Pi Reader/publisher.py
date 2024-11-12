@@ -4,6 +4,12 @@ from readings import NFCReading
 
 
 class Publisher:
+    """
+    An asynchronous class to forward any readings in the provided queue to a configured broker.
+
+    The Publisher class takes an asynchronous queue that gets populated by NFCReading objects, publishing the readings
+    to a mqtt broker.
+    """
 
     def __init__(self, queue: asyncio.Queue[NFCReading]):
         self._queue = queue
@@ -17,11 +23,17 @@ class Publisher:
         """
         Publish the given readings to the broker address
 
-        The format of the payload to be sent:
-        QUEST_ID
-        USER1_ID
-        USER2_ID
-        USER3_ID
+        The sample format of the payload to be sent and received by the broker (tentative):
+        QUESTg107af419hb41414
+        USER14f8971da4984B5
+        USER1414fa1441d555
+        USER148arf9714faf9845
+        QUESTg152181hkdf9814
+        USER14f8971drFrt3145
+        USER1414BdD2145e14
+        USER148arf9714faf9845
+
+        ... and so on
 
         :param readings: The readings to publish to the broker
         :return: True if successful
