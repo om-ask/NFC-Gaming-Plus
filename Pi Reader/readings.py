@@ -1,3 +1,5 @@
+import enum
+
 
 class NFCReading:
     """
@@ -9,3 +11,9 @@ class NFCReading:
     def __init__(self, quest_id, user_id):
         self.quest_id = quest_id
         self.user_id = user_id
+
+
+class TagType(enum.Enum):
+    QUEST = "Q"
+    USER= "U"
+    INVALID = "I"
