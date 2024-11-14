@@ -4,7 +4,10 @@ import nfc
 
 from readings import NFCReading, TagType, Quest, User
 
+# TODO Document this code and test
 
+
+# TODO Handle Exceptions
 class NFCReaderDevice:
     def __init__(self):
         self._clf = nfc.ContactlessFrontend()
@@ -47,6 +50,7 @@ class NFCReaderDevice:
         self.close()
 
 
+# TODO Handle exceptions
 class Reader:
 
     def __init__(self, queue: asyncio.Queue[NFCReading]):
@@ -73,8 +77,8 @@ class Reader:
     def switch_quest_back(self) -> bool:
         return self.set_new_quest(self._previous_quest)
 
-    def handle_quest_card(self, tag_text: str) -> bool:
-        return self.set_new_quest(Quest.quest_from_card(tag_text))
+    def handle_quest_card(self, tag_text: str, one_time: bool) -> bool:
+        return self.set_new_quest(Quest.quest_from_card(tag_text, one_time))
 
     async def handle_user_tag(self, tag_text: str) -> bool:
         user: User = User.user_from_tag(tag_text)
@@ -98,7 +102,10 @@ class Reader:
         tag_type = TagType.tag_type(record.text)
         match tag_type:
             case TagType.QUEST:
-                return self.handle_quest_card(record.text)
+                return self.handle_quest_card(record.text, False)
+
+            case TagType.ONE_TIME_QUEST:
+                return self.handle_quest_card(record.text, True)
 
             case TagType.USER:
                 return await self.handle_user_tag(record.text)

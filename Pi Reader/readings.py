@@ -2,6 +2,8 @@ import enum
 from typing import Self
 
 
+# TODO Document this code
+
 class User:
     """
     Helper class to store and create Users from tag readings
@@ -50,7 +52,7 @@ class User:
 
 class Quest:
     """
-    Helper class to store and create Quests from quest card readings
+    Class to store and create Quests from quest card readings
     Each quest has a quest id and a user set
 
     The id alone is not prefixed or suffixed by anything
@@ -63,14 +65,15 @@ class Quest:
     # Message format for publishing
     QUEST_MESSAGE_FORMAT = "QUEST%s"
 
-    def __init__(self, quest_id: str, one_time:bool=False):
+    def __init__(self, quest_id: str, one_time: bool = False):
         self._quest_id = quest_id
         self._one_time = one_time
         self._quest_user_log: set[User] = set()
     
     @classmethod
-    def quest_from_card(cls, card_text: str) -> Self:
-        # TODO Handle special quests
+    def quest_from_card(cls, card_text: str, onetime: bool = False) -> Self:
+        if onetime:
+            return cls(card_text[6:], True)
         return cls(card_text[5:])
 
     @property
@@ -137,6 +140,7 @@ class NFCReading:
 
 class TagType(enum.Enum):
     QUEST = "Q"
+    ONE_TIME_QUEST = "SQ"
     USER= "U"
     INVALID = "I"
 
@@ -144,6 +148,8 @@ class TagType(enum.Enum):
     def tag_type(cls, string:str) -> Self:
         if string.startswith("QUEST") and len(string) > 5:
             return cls.QUEST
+        elif string.startswith("SQUEST") and len(string) > 6:
+            return cls.ONE_TIME_QUEST
         elif string.startswith("USER") and len(string) > 4:
             return cls.USER
         else:
