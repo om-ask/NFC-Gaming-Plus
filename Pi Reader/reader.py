@@ -2,7 +2,7 @@ import asyncio
 import ndef
 import nfc
 
-from readings import NFCReading
+from readings import NFCReading, TagType, Quest, User
 
 
 class NFCReaderDevice:
@@ -26,13 +26,14 @@ class NFCReaderDevice:
 
         return tag
 
-    def read_tag(self) -> nfc.tag.Tag:
+    def read_tag(self, check=lambda tag:True) -> nfc.tag.Tag:
         """
         Blocking
         """
         while True:
             tag = self.find_tag()
-            if tag:
+            if tag and check(tag):
+                self.beep()
                 return tag
 
     def beep(self):
@@ -53,27 +54,80 @@ class Reader:
 
         self._queue = queue
 
-        self._current_quest = ""
-        self._previous_quest = ""
+        self._current_quest: Quest | None = None
+        self._previous_quest: Quest | None = None
 
-    def set_new_quest(self, quest: str) -> None:
+        self._special_quest_flag: bool = False
+
+    def set_new_quest(self, quest: Quest) -> bool:
+        if quest == self._current_quest:
+            return False
+
+        if quest.one_time:
+            self._special_quest_flag = True
+
         self._previous_quest = self._current_quest
         self._current_quest = quest
+        return True
 
-    def switch_quest_back(self) -> None:
-        self.set_new_quest(self._previous_quest)
+    def switch_quest_back(self) -> bool:
+        return self.set_new_quest(self._previous_quest)
+
+    def handle_quest_card(self, tag_text: str) -> bool:
+        return self.set_new_quest(Quest.quest_from_card(tag_text))
+
+    async def handle_user_tag(self, tag_text: str) -> bool:
+        user: User = User.user_from_tag(tag_text)
+
+        user_recorded: bool = self._current_quest.record_user(user)
+        if user_recorded:
+            return False
+
+        # Create reading and push to queue
+        reading: NFCReading = NFCReading(self._current_quest, user)
+        await self._queue.put(reading)
+
+        if self._special_quest_flag:
+            self._special_quest_flag = False
+            self.switch_quest_back()
+
+        return True
 
     async def handle_tag(self, tag: nfc.tag.Tag) -> bool:
-        if not tag.ndef or not tag.ndef.records:
-            return False
-        # TODO Check if it a quest or user card, and then act accordingly
+        record: ndef.TextRecord = tag.ndef.records[0]
+        tag_type = TagType.tag_type(record.text)
+        match tag_type:
+            case TagType.QUEST:
+                return self.handle_quest_card(record.text)
 
+            case TagType.USER:
+                return await self.handle_user_tag(record.text)
 
+            case _:
+                return False
 
     async def readings_task(self) -> None:
         with self._device as activated_device:
             while True:
-                tag = await asyncio.to_thread(activated_device.read_tag)
-                success = self.handle_tag(tag)
-                if success:
-                    activated_device.beep()
+                tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
+
+                await self.handle_tag(tag)
+
+
+def tag_check(tag: nfc.tag.Tag) -> bool:
+    if not tag.ndef:
+        return False
+
+    if not len(tag.ndef.records) == 1:
+        return False
+
+    record: ndef.TextRecord = tag.ndef.records[0]
+    if not isinstance(record, ndef.TextRecord):
+        return False
+
+    tag_type = TagType.tag_type(record.text)
+    if tag_type == TagType.INVALID:
+        return False
+
+    return True
+
