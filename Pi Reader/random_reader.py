@@ -2,7 +2,7 @@ import asyncio
 import logging
 import random
 
-from readings import NFCReading
+from readings import NFCReading, Quest, User
 
 ID_LENGTH = 10
 ID_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -28,7 +28,7 @@ class RandomReader:
             random_quest_id = self._generate_random_id(ID_LENGTH)
             random_user_id = self._generate_random_id(ID_LENGTH)
 
-            random_reading = NFCReading(random_quest_id, random_user_id)
+            random_reading = NFCReading(Quest(random_quest_id), User(random_user_id))
 
             # Put to queue
             logger.debug("Putting random reading to queue")
