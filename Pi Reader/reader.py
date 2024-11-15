@@ -22,7 +22,7 @@ class NFCReaderDevice:
         self._clf.close()
 
     def find_tag(self) -> nfc.tag.Tag | None:
-        target_tag: nfc = self._clf.sense(self.TARGETS)
+        target_tag: nfc = self._clf.sense(*self.TARGETS)
         if target_tag is None:
             return
 
