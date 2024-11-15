@@ -201,6 +201,7 @@ class NFCReaderDevice:
 
 # TODO Handle exceptions (device disconnected, etc)
 # TODO Test this code extensively
+# NOTE: Possible edge case may occur when the same special quest is read multiple time in a row
 class Reader:
     """
     Asynchronous class that performs custom tag reading logic using a NFCReaderDevice and pushes the results to a queue
@@ -209,16 +210,16 @@ class Reader:
     """
 
     # Custom buzzer and led blinking configurations for different situations
-    QUEST_SET = "blink_green", 100, 2, "short"
-    QUEST_ALREADY_SET = "blink_orange", 100, 2, "none"
+    QUEST_SET = "blink_green", 200, 1, "short"
+    QUEST_ALREADY_SET = "blink_orange", 200, 1, "none"
 
-    SPECIAL_QUEST_SET = "blink_green", 100, 3, "short"
-    SPECIAL_QUEST_ALREADY_SET = "blink_orange", 100, 3, "none"
+    SPECIAL_QUEST_SET = "blink_green", 100, 2, "short"
+    SPECIAL_QUEST_ALREADY_SET = "blink_orange", 100, 2, "none"
 
     USER_RECORDED = "blink_green", 100, 1, "short"
     USER_ALREADY_RECORD = "blink_orange", 100, 1, "none"
 
-    NO_QUEST_CONFIGURED = "blink_red", 300, 1, "short"
+    NO_QUEST_CONFIGURED = "blink_red", 200, 1, "short"
 
     def __init__(self, queue: asyncio.Queue[NFCReading]):
         # Create the reader device and open it
