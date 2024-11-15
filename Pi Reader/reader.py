@@ -9,9 +9,6 @@ from readings import NFCReading, TagType, Quest, User
 
 # TODO Handle Exceptions
 class NFCReaderDevice:
-
-    TARGETS = ['106A', '106B', '212F']
-
     def __init__(self):
         self._clf = nfc.ContactlessFrontend()
 
@@ -22,7 +19,7 @@ class NFCReaderDevice:
         self._clf.close()
 
     def find_tag(self) -> nfc.tag.Tag | None:
-        target_tag: nfc = self._clf.sense(self.TARGETS)
+        target_tag: nfc = self._clf.sense('106A', '106B', '212F')
         if target_tag is None:
             return
 
