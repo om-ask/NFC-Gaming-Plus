@@ -50,7 +50,7 @@ class Publisher:
         :return: None
         """
         while True:
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.5)
             await self.publish([])
 
 
