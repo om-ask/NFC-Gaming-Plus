@@ -1,7 +1,8 @@
 import asyncio
 
-from amqtt.client import MQTTClient
+from amqtt.client import MQTTClient, ConnectException
 from readings import NFCReading
+from amqtt.mqtt.constants import QOS_2
 
 
 class Publisher:
@@ -53,4 +54,29 @@ class Publisher:
             await asyncio.sleep(0.5)
             await self.publish([])
 
+    async def publish_with_qos_2(broker_url, topic, payload):
+        mqtt_config = {
+            "keep_alive": 60,  # Time in seconds for keep-alive pings
+            "ping_delay": 1,  # Delay before sending a ping after the keep-alive time
+            "reconnect_retries": 10,  # Maximum reconnection attempts
+            "reconnect_max_interval": 5,  # Maximum interval between retries (seconds)
+        }
 
+        client = MQTTClient(config=mqtt_config)
+
+        try:
+            # Connect to the broker
+            await client.connect(broker_url)
+            print(f"Connected to broker: {broker_url}")
+
+            # Publish the message
+            await client.publish(topic, payload.encode(), qos=QOS_2)
+            print(f"Message published to topic '{topic}' with QoS 2.")
+
+        except ConnectException as e:
+            print(f"Failed to connect to the broker: {e}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        finally:
+            await client.disconnect()
+            print("Disconnected from broker.")
