@@ -22,10 +22,11 @@ class RandomReader:
     async def readings_task(self) -> None:
         while True:
             # Wait for a random time
-            await asyncio.sleep(random.randint(5, 30))
+            await asyncio.sleep(random.randint(1, 2))
 
             # Create a random reading
             random_quest_id = self._generate_random_id(ID_LENGTH)
+            # random_quest_id = "123123aa"
             random_user_id = self._generate_random_id(ID_LENGTH)
 
             random_reading = NFCReading(Quest(random_quest_id), User(random_user_id))

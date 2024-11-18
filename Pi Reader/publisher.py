@@ -44,6 +44,18 @@ class Publisher:
         :return: True if successful
         """
         await asyncio.sleep(0)
+        current_quest = ""
+        payload = ""
+
+        # Iterate over the provided readings
+        for s in readings:
+            if s.quest_id != current_quest:
+                current_quest = s.quest_id
+                payload += s.quest_string() + "\n"
+            payload += s.user_string() + "\n"
+
+        # Print the generated payload
+        print(payload)
         return False
 
     # TODO Publish every 30 seconds
@@ -85,6 +97,6 @@ class Publisher:
             print("Disconnected from broker.")
 
 
-readings_queue: asyncio.Queue[NFCReading] = asyncio.Queue()
-x = Publisher = Publisher(readings_queue)
-print(x._broker_address, x._publish_topic)
+# readings_queue: asyncio.Queue[NFCReading] = asyncio.Queue()
+# x = Publisher = Publisher(readings_queue)
+# print(x._broker_address, x._publish_topic)
