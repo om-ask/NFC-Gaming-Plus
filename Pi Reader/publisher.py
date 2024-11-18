@@ -15,10 +15,13 @@ class Publisher:
 
     def __init__(self, queue: asyncio.Queue[NFCReading]):
         self._queue = queue
-
-        # TODO Read ip address and topic specified in config.txt
         self._publish_topic = ""
         self._broker_address = ""
+        # TODO Read ip address and topic specified in config.txt Done
+        with open('config.txt', 'r') as file:
+            lines = file.readlines()  # Returns a list where each element is a line
+            self._broker_address = lines[0].strip()
+            self._publish_topic = lines[1].strip()
 
 
     async def publish(self, readings: list[NFCReading]) -> bool:
@@ -54,7 +57,7 @@ class Publisher:
             await asyncio.sleep(0.5)
             await self.publish([])
 
-    async def publish_with_qos_2(broker_url, topic, payload):
+    async def publish_with_qos_2(self,broker_url, topic, payload):
         mqtt_config = {
             "keep_alive": 60,  # Time in seconds for keep-alive pings
             "ping_delay": 1,  # Delay before sending a ping after the keep-alive time
@@ -80,3 +83,8 @@ class Publisher:
         finally:
             await client.disconnect()
             print("Disconnected from broker.")
+
+
+readings_queue: asyncio.Queue[NFCReading] = asyncio.Queue()
+x = Publisher = Publisher(readings_queue)
+print(x._broker_address, x._publish_topic)
