@@ -17,6 +17,7 @@ class Publisher:
         self._queue = queue
         self._publish_topic = ""
         self._broker_address = ""
+        self._OldPayload = ""
         # TODO Read ip address and topic specified in config.txt Done
         with open('config.txt', 'r') as file:
             lines = file.readlines()  # Returns a list where each element is a line
@@ -45,57 +46,76 @@ class Publisher:
         """
         await asyncio.sleep(0)
         current_quest = ""
-        payload = ""
+        payload = self._OldPayload
 
-        # Iterate over the provided readings
         for s in readings:
             if s.quest_id != current_quest:
                 current_quest = s.quest_id
                 payload += s.quest_string() + "\n"
             payload += s.user_string() + "\n"
-
-        # Print the generated payload
+            # print(f"Generated NFCReading: user_id={s.user_id}")
         print(payload)
-        return False
+        battah = await self.publish_with_qos_2(self._broker_address, self._publish_topic, payload)
+        return battah
 
     # TODO Publish every 30 seconds
     # TODO Handle cases where publishing fails due to connection errors
-    async def publish_forever(self) -> None:
-        """
-        Loops forever waiting for readings and publishing to the mqtt broker
-        :return: None
-        """
-        while True:
-            await asyncio.sleep(0.5)
-            await self.publish([])
-
-    async def publish_with_qos_2(self,broker_url, topic, payload):
+    async def publish_with_qos_2(self, broker_url, topic, payload):
         mqtt_config = {
-            "keep_alive": 60,  # Time in seconds for keep-alive pings
-            "ping_delay": 1,  # Delay before sending a ping after the keep-alive time
-            "reconnect_retries": 10,  # Maximum reconnection attempts
-            "reconnect_max_interval": 5,  # Maximum interval between retries (seconds)
+            "keep_alive": 20,
+            "ping_delay": 1,
+            "reconnect_retries": 5,
+            "reconnect_max_interval": 3,
         }
 
-        client = MQTTClient(config=mqtt_config)
+        client = None
 
         try:
+            # Initialize MQTTClient
+            client = MQTTClient(config=mqtt_config)
+            print("MQTTClient initialized.")
+
             # Connect to the broker
+            print("Attempting to connect...")
             await client.connect(broker_url)
             print(f"Connected to broker: {broker_url}")
 
+            # Validate and encode the payload
+            if not payload or not isinstance(payload, str):
+                raise ValueError("Payload must be a non-empty string.")
+            encoded_payload = payload.encode()
+            print(f"Payload encoded: {encoded_payload}")
+
             # Publish the message
-            await client.publish(topic, payload.encode(), qos=QOS_2)
+            await client.publish(topic, encoded_payload, qos=QOS_2)
             print(f"Message published to topic '{topic}' with QoS 2.")
+            self._OldPayload = ""
+            return True
 
         except ConnectException as e:
-            print(f"Failed to connect to the broker: {e}")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        finally:
-            await client.disconnect()
-            print("Disconnected from broker.")
+            print(f"ConnectException occurred: {e}")
+            self._OldPayload = payload
+            return False
 
+        except AttributeError as e:
+            print(f"AttributeError: {e}. Possible uninitialized or invalid client.")
+            self._OldPayload = payload
+            return False
+
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            self._OldPayload = payload
+            return False
+
+        finally:
+            if client is not None:
+                try:
+                    await client.disconnect()
+                    print("Disconnected from broker.")
+                except Exception as e:
+                    print(f"Error during disconnection: {e}")
+            else:
+                print("Client was not initialized properly.")
 
 # readings_queue: asyncio.Queue[NFCReading] = asyncio.Queue()
 # x = Publisher = Publisher(readings_queue)
