@@ -24,7 +24,6 @@ class Publisher:
             self._broker_address = lines[0].strip()
             self._publish_topic = lines[1].strip()
 
-
     async def publish(self, readings: list[NFCReading]) -> bool:
         """
         Publish the given readings to the broker address
@@ -44,7 +43,6 @@ class Publisher:
         :param readings: The readings to publish to the broker
         :return: True if successful
         """
-        await asyncio.sleep(0)
         current_quest = ""
         payload = self._OldPayload
 
@@ -60,6 +58,15 @@ class Publisher:
 
     # TODO Publish every 30 seconds
     # TODO Handle cases where publishing fails due to connection errors
+    async def publish_forever(self) -> None:
+        """
+        Loops forever waiting for readings and publishing to the mqtt broker
+        :return: None
+        """
+        while True:
+            await asyncio.sleep(0.5)
+            # await self.publish([])
+
     async def publish_with_qos_2(self, broker_url, topic, payload):
         mqtt_config = {
             "keep_alive": 20,

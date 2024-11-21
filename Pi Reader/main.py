@@ -41,7 +41,6 @@ async def main(no_reader: bool) -> None:
     logger.info("Finished tasks")
 
 
-
 # Run program based on command line arguments
 if __name__ == '__main__':
     # Configure logger
