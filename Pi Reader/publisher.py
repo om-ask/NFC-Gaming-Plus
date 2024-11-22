@@ -21,6 +21,11 @@ class Publisher:
         self._publish_topic = ""
         self._broker_address = ""
         self._OldPayload = ""
+
+        with open("Payload.txt", "r") as file:
+            self._OldPayload = file.read()
+
+
         # TODO Read ip address and topic specified in config.txt Done
         with open('config.txt', 'r') as file:
             lines = file.readlines()  # Returns a list where each element is a line
@@ -109,24 +114,36 @@ class Publisher:
             logger.info(f"Message published to topic {topic}")
             logger.debug(f"{encoded_payload} sent to {topic}")
             self._OldPayload = ""
+            with open("Payload.txt", "w") as file:
+                # Write the desired string to the file
+                file.write("")
             return True
 
         except ConnectException as e:
             # print(f"ConnectException occurred: {e}")
             logger.error("Error connecting to Broker")
             self._OldPayload = payload
+            with open("Payload.txt", "w") as file:
+                # Write the desired string to the file
+                file.write(payload)
             return False
 
         except AttributeError as e:
             # print(f"AttributeError: {e}. Possible uninitialized or invalid client.")
             logger.error(f"Error {e}")
             self._OldPayload = payload
+            with open("Payload.txt", "w") as file:
+                # Write the desired string to the file
+                file.write(payload)
             return False
 
         except Exception as e:
             # print(f"Unexpected error: {e}")
             logger.error(f"Error {e}")
             self._OldPayload = payload
+            with open("Payload.txt", "w") as file:
+                # Write the desired string to the file
+                file.write(payload)
             return False
 
         finally:
