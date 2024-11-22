@@ -64,8 +64,11 @@ class Publisher:
         :return: None
         """
         while True:
-            await asyncio.sleep(0.5)
-            # await self.publish([])
+            readings = []
+            await asyncio.sleep(15)
+            while not self._queue.empty():
+                readings.append(await self._queue.get())
+            await self.publish([])
 
     async def publish_with_qos_2(self, broker_url, topic, payload):
         mqtt_config = {
@@ -79,7 +82,7 @@ class Publisher:
 
         try:
             # Initialize MQTTClient
-            client = MQTTClient(config=mqtt_config)
+            client = MQTTClient()
             print("MQTTClient initialized.")
 
             # Connect to the broker
