@@ -8,7 +8,7 @@ from readings import NFCReading, TagType, Quest, User
 
 # Create a logger for this module
 logger = logging.getLogger(__name__)
-# TODO Log
+
 
 class NFCReaderDevice:
     """
@@ -40,7 +40,6 @@ class NFCReaderDevice:
         """
         # Open device
         self._clf.open("usb")
-
 
     def close(self) -> None:
         """
@@ -86,7 +85,7 @@ class NFCReaderDevice:
         logger.debug("Tag successfully activated and returned")
         return tag
 
-    def read_tag(self, check=lambda tag:True) -> nfc.tag.Tag:
+    def read_tag(self, check=lambda tag: True) -> nfc.tag.Tag:
         """
         Method that blocks until a valid tag is found and read by the reader device.
         If a check is optionally provided, the tag will be validated by the check function.
@@ -97,10 +96,14 @@ class NFCReaderDevice:
         :return: A valid tag that passes the check (if provided)
         """
         while True:
-            tag = self.find_tag()
-            if tag and check(tag):
-                logger.debug("Valid tag read and returned")
-                return tag
+            try:
+                tag = self.find_tag()
+                if tag and check(tag):
+                    logger.debug("Valid tag read and returned")
+                    return tag
+
+            except Exception as e:
+                logger.error(f"UNHANDLED EXCEPTION in INNER read_tag loop {e}")
 
     def buzzer_and_led_on(self, color_command, cycle_duration_in_ms, repeat, beep_type) -> None:
         """
@@ -187,6 +190,7 @@ class NFCReaderDevice:
         try:
             self._clf.device.chipset.ccid_xfr_block(bytearray.fromhex(hexvalue), timeout=timeout_in_seconds)
             time.sleep(timeout_in_seconds)
+
         except:
             logger.error("Failed to set led and buzzer with command: " + hexvalue)
             raise
@@ -199,7 +203,6 @@ class NFCReaderDevice:
         self.close()
 
 
-# TODO Handle exceptions (device disconnected, etc)
 # TODO Test this code extensively
 # NOTE: Possible edge case may occur when the same special quest is read multiple time in a row
 class Reader:
@@ -251,7 +254,7 @@ class Reader:
             self._special_quest_flag = True
 
         logger.info("Setting new quest")
-        
+
         # Set the new quest to current while setting previous quest to old current 
         self._previous_quest = self._current_quest
         self._current_quest = quest
@@ -318,10 +321,16 @@ class Reader:
         :return: True if tag was meaningfully handled, False otherwise (such as repeated tag readings)
         """
         # Extract the text record from the tag
-        record: ndef.TextRecord = tag.ndef.records[0]
+        try:
+            record: ndef.TextRecord = tag.ndef.records[0]
+            text = record.text
+
+        except Exception as e:
+            logger.error(e)
+            return False
 
         # Determine tag type from the record text and handle the tag according to its type while beeping
-        tag_type = TagType.tag_type(record.text)
+        tag_type = TagType.tag_type(text)
         match tag_type:
             case TagType.QUEST:
                 # Handle it as a quest card
@@ -377,10 +386,19 @@ class Reader:
         """
         with self._device as activated_device:
             while True:
-                tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
-                logger.info("Handling tag" + str(tag))
+                try:
+                    tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
 
-                await self.handle_tag(tag)
+                except Exception as e:
+                    logger.error(f"UNHANDLED ERROR in read_tag loop {e}")
+                    continue
+
+                logger.info("Handling tag" + str(tag))
+                try:
+                    await self.handle_tag(tag)
+
+                except Exception as e:
+                    logger.error(f"UNHANDLED ERROR in handling tag! {e}")
 
     async def beep(self, color_command, cycle_duration_in_ms, repeat, beep_type) -> None:
         """
@@ -413,6 +431,9 @@ class Reader:
 
         except IOError as io_error:
             logger.warning("Device beeping failed due to: " + str(io_error))
+
+        except Exception as e:
+            logger.error(f"UNHANDLED ERROR in beeping {e}")
 
         # TODO Possible handle other unforeseen errors?
 

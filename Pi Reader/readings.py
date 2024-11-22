@@ -69,7 +69,7 @@ class Quest:
         self._quest_id = quest_id
         self._one_time = one_time
         self._quest_user_log: set[User] = set()
-    
+
     @classmethod
     def quest_from_card(cls, card_text: str, onetime: bool = False) -> Self:
         if onetime:
@@ -97,7 +97,7 @@ class Quest:
 
         self._quest_user_log.add(user)
         return True
-    
+
     def __str__(self) -> str:
         return self.message()
 
@@ -118,6 +118,7 @@ class NFCReading:
     To generate a correctly prefixed quest or user id reading for publishing,
     use quest_string() and .user_string() respectively 
     """
+
     def __init__(self, quest: Quest, user: User):
         self._quest = quest
         self._user = user
@@ -129,23 +130,22 @@ class NFCReading:
     @property
     def user_id(self):
         return self._user.user_id
-    
+
     def quest_string(self) -> str:
         return str(self._quest)
-    
+
     def user_string(self) -> str:
         return str(self._user)
-        
 
 
 class TagType(enum.Enum):
     QUEST = "Q"
     ONE_TIME_QUEST = "SQ"
-    USER= "U"
+    USER = "U"
     INVALID = "I"
 
     @classmethod
-    def tag_type(cls, string:str) -> Self:
+    def tag_type(cls, string: str) -> Self:
         if string.startswith("QUEST") and len(string) > 5:
             return cls.QUEST
         elif string.startswith("SQUEST") and len(string) > 6:
