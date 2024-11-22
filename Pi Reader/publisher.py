@@ -1,8 +1,11 @@
 import asyncio
+import logging
 
 from amqtt.client import MQTTClient, ConnectException
 from readings import NFCReading
 from amqtt.mqtt.constants import QOS_2
+
+logger = logging.getLogger(__name__)
 
 
 class Publisher:
@@ -23,6 +26,7 @@ class Publisher:
             lines = file.readlines()  # Returns a list where each element is a line
             self._broker_address = lines[0].strip()
             self._publish_topic = lines[1].strip()
+            logger.debug(f"Broker IP {self._broker_address}, and Topic {self._publish_topic}")
 
     async def publish(self, readings: list[NFCReading]) -> bool:
         """
@@ -52,7 +56,8 @@ class Publisher:
                 payload += s.quest_string() + "\n"
             payload += s.user_string() + "\n"
             # print(f"Generated NFCReading: user_id={s.user_id}")
-        print(payload)
+        # print(payload)
+        logger.debug(payload)
         battah = await self.publish_with_qos_2(self._broker_address, self._publish_topic, payload)
         return battah
 
@@ -68,7 +73,7 @@ class Publisher:
             await asyncio.sleep(15)
             while not self._queue.empty():
                 readings.append(await self._queue.get())
-            await self.publish([])
+            await self.publish(readings)
 
     async def publish_with_qos_2(self, broker_url, topic, payload):
         mqtt_config = {
@@ -83,37 +88,44 @@ class Publisher:
         try:
             # Initialize MQTTClient
             client = MQTTClient()
-            print("MQTTClient initialized.")
+            # print("MQTTClient initialized.")
 
             # Connect to the broker
-            print("Attempting to connect...")
+            # print("Attempting to connect...")
             await client.connect(broker_url)
-            print(f"Connected to broker: {broker_url}")
+            # print(f"Connected to broker: {broker_url}")
+            logger.debug(f"Connected to broker: {broker_url}")
 
             # Validate and encode the payload
             if not payload or not isinstance(payload, str):
                 raise ValueError("Payload must be a non-empty string.")
             encoded_payload = payload.encode()
-            print(f"Payload encoded: {encoded_payload}")
+            # print(f"Payload encoded: {encoded_payload}")
 
             # Publish the message
             await client.publish(topic, encoded_payload, qos=QOS_2)
-            print(f"Message published to topic '{topic}' with QoS 2.")
+            # print(f"Message published to topic '{topic}' with QoS 2.")
+            # f"Message published to topic"
+            logger.info(f"Message published to topic {topic}")
+            logger.debug(f"{encoded_payload} sent to {topic}")
             self._OldPayload = ""
             return True
 
         except ConnectException as e:
-            print(f"ConnectException occurred: {e}")
+            # print(f"ConnectException occurred: {e}")
+            logger.error("Error connecting to Broker")
             self._OldPayload = payload
             return False
 
         except AttributeError as e:
-            print(f"AttributeError: {e}. Possible uninitialized or invalid client.")
+            # print(f"AttributeError: {e}. Possible uninitialized or invalid client.")
+            logger.error(f"Error {e}")
             self._OldPayload = payload
             return False
 
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            # print(f"Unexpected error: {e}")
+            logger.error(f"Error {e}")
             self._OldPayload = payload
             return False
 
@@ -122,11 +134,8 @@ class Publisher:
                 try:
                     await client.disconnect()
                     print("Disconnected from broker.")
+                    logger.debug(f"Disconnected From Broker")
                 except Exception as e:
                     print(f"Error during disconnection: {e}")
             else:
                 print("Client was not initialized properly.")
-
-# readings_queue: asyncio.Queue[NFCReading] = asyncio.Queue()
-# x = Publisher = Publisher(readings_queue)
-# print(x._broker_address, x._publish_topic)
