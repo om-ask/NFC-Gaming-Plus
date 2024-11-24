@@ -8,6 +8,7 @@ from readings import NFCReading
 from reader import Reader
 from shop_server import Shop_Server
 
+
 # Main function
 async def main(no_reader: bool) -> None:
     # Create queue stack
@@ -15,7 +16,6 @@ async def main(no_reader: bool) -> None:
 
     # Create shop server
     shop_server: Shop_Server = Shop_Server(readings_queue)
-    
 
     # Check if we should connect to a real nfc reader or not
     if no_reader:

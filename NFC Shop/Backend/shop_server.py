@@ -4,8 +4,8 @@ from pydantic import BaseModel
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
-
 from readings import NFCReading
+
 
 class Shop_Server:
     def __init__(self, queue: asyncio.Queue[NFCReading]):
@@ -16,6 +16,7 @@ class Shop_Server:
 
     def setup_routes(self):
         """Define the API endpoints."""
+
         @self.app.get('/read_nfc')
         async def read_nfc():
             readings = []
