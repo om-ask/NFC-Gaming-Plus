@@ -4,8 +4,11 @@ from pydantic import BaseModel
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
+from readings import NFCReading
+
+
 class Shop_Server:
-    def __init__(self, queue: asyncio.Queue[str]):
+    def __init__(self, queue: asyncio.Queue[NFCReading]):
         """Initialize the Flask app and set up routes."""
         self._queue = queue
         self.app = FastAPI()
@@ -13,15 +16,13 @@ class Shop_Server:
 
     def setup_routes(self):
         """Define the API endpoints."""
+
         @self.app.get('/read_nfc')
         async def read_nfc():
-            last_reading = ""
+            readings = []
             while not self._queue.empty():
-                last_reading = await self._queue.get()
-            
-
-
-            return last_reading
+                readings.append(await self._queue.get())
+            return readings
 
     async def run(self):
         config = Config()

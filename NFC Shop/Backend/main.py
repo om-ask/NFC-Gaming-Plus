@@ -2,6 +2,8 @@ import asyncio
 import logging
 import argparse
 
+from readings import NFCReading
+
 # Import shop_server and reader
 from reader import Reader
 from shop_server import Shop_Server
@@ -9,10 +11,10 @@ from shop_server import Shop_Server
 # Main function
 async def main(no_reader: bool) -> None:
     # Create queue stack
-    user_queue: asyncio.Queue[str] = asyncio.Queue()
+    readings_queue: asyncio.Queue[NFCReading] = asyncio.Queue()
 
     # Create shop server
-    shop_server: Shop_Server = Shop_Server(user_queue)
+    shop_server: Shop_Server = Shop_Server(readings_queue)
     
 
     # Check if we should connect to a real nfc reader or not
@@ -20,11 +22,11 @@ async def main(no_reader: bool) -> None:
         logger.debug("No reader mode: Using random reader")
         from random_reader import RandomReader
 
-        reader: RandomReader = RandomReader(user_queue)
+        reader: RandomReader = RandomReader(readings_queue)
 
     else:
         # Create normal reader
-        reader: Reader = Reader(user_queue)
+        reader: Reader = Reader(readings_queue)
 
     # Create tasks
     async with asyncio.TaskGroup() as task_manager:
