@@ -3,8 +3,8 @@ from asyncio import Queue
 
 class Payload:
 
-    def __init__(self, reader_id, user_id):
-        self.quest_id = reader_id
+    def __init__(self, quest_id, user_id):
+        self.quest_id = quest_id
         self.user_id = user_id
 
         self.processed = False
