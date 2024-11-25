@@ -4,7 +4,7 @@ import time
 import ndef
 import nfc
 
-from readings import NFCReading, TagType, Quest, User
+from user import  User
 
 # Create a logger for this module
 logger = logging.getLogger(__name__)
@@ -209,116 +209,26 @@ class Reader:
     """
     Asynchronous class that performs custom tag reading logic using a NFCReaderDevice and pushes the results to a queue
 
-    Handles quests and one time quests
+    Handles users only
     """
 
-    # Custom buzzer and led blinking configurations for different situations
-    QUEST_SET = "blink_green", 200, 1, "short"
-    QUEST_ALREADY_SET = "blink_orange", 200, 1, "none"
-
-    SPECIAL_QUEST_SET = "blink_green", 100, 2, "short"
-    SPECIAL_QUEST_ALREADY_SET = "blink_orange", 100, 2, "none"
-
+    # Custom buzzer and led blinking configuration
     USER_RECORDED = "blink_green", 100, 1, "short"
-    USER_ALREADY_RECORD = "blink_orange", 100, 1, "none"
 
-    NO_QUEST_CONFIGURED = "blink_red", 200, 1, "short"
-
-    def __init__(self, queue: asyncio.Queue[NFCReading]):
+    def __init__(self, queue: asyncio.Queue[str]):
         # Create the reader device and open it
         self._device = NFCReaderDevice()
 
         # Save queue reference
         self._queue = queue
 
-        # Create the quest instance variables
-        self._current_quest: Quest | None = None
-        self._previous_quest: Quest | None = None
-
-        self._special_quest_flag: bool = False
-
-    def set_new_quest(self, quest: Quest) -> bool:
-        """
-        Sets the given quest as the current quest, handling special quests
-        
-        :param quest: The Quest object to set
-        :return: True if quest was set, False if the same quest is already set
-        """
-        if quest == self._current_quest:
-            # Quest is already current
-            return False
-
-        if quest.one_time:
-            # Enable special quest flag if the quest is one-time
-            logger.info("Special Quest Enabled")
-            self._special_quest_flag = True
-
-        logger.info("Setting new quest")
-
-        # Set the new quest to current while setting previous quest to old current 
-        self._previous_quest = self._current_quest
-        self._current_quest = quest
-        return True
-
-    def switch_quest_back(self) -> bool:
-        """
-        Switch current and previous quests
-        
-        :return: True if quests were switched, False if no previous or current quest is set 
-        """
-        if self._previous_quest is None or self._current_quest is None:
-            # No current or previous quest to switch between
-            return False
-
-        logger.info("Switching to previous quest")
-        return self.set_new_quest(self._previous_quest)
-
-    def handle_quest_card(self, tag_text: str, one_time: bool) -> bool:
-        """
-        Transform the given tag text into a Quest object and update the current quest
-
-        :param tag_text: The text in the tag's record
-        :param one_time: True if the quest is special, False otherwise
-        :return: True if the current quest was updated successfully, False otherwise (quest is already set)
-        """
-        return self.set_new_quest(Quest.quest_from_card(tag_text, one_time))
-
-    async def handle_user_tag(self, tag_text: str) -> bool:
-        """
-        Create a User from the given text and record it into the current quest, then compose an NFCReading to push
-        to the queue
-
-        :param tag_text: The text is the tag's record
-        :return: True if the user was recorded successfully, False otherwise
-        """
-        # Create the user from the tag text
-        user: User = User.user_from_tag(tag_text)
-
-        # Record the user into the current quest and check if the user is already recorded
-        user_just_recorded: bool = self._current_quest.record_user(user)
-        if not user_just_recorded:
-            # User already recorded previously
-            logger.info("User already recorded in quest")
-            return False
-
-        # Create reading and push to queue
-        reading: NFCReading = NFCReading(self._current_quest, user)
-        logger.debug("Adding reading to queue")
-        await self._queue.put(reading)
-
-        # If the current quest was one time only, switch to the previous quest and update the special quest flag
-        if self._special_quest_flag:
-            self._special_quest_flag = False
-            self.switch_quest_back()
-
-        return True
 
     async def handle_tag(self, tag: nfc.tag.Tag) -> bool:
         """
-        Given a valid Tag object, extract the text, identify the TagType, and then handle the tag according to the tag
+        Given a valid user Tag object, handle it by extracting the user id and pushing it to the queue
         type
         :param tag: The valid Tag object to handle
-        :return: True if tag was meaningfully handled, False otherwise (such as repeated tag readings)
+        :return: True if tag was meaningfully handled, False otherwise
         """
         # Extract the text record from the tag
         try:
@@ -329,54 +239,14 @@ class Reader:
             logger.error(e)
             return False
 
-        # Determine tag type from the record text and handle the tag according to its type while beeping
-        tag_type = TagType.tag_type(text)
-        match tag_type:
-            case TagType.QUEST:
-                # Handle it as a quest card
-                if self.handle_quest_card(record.text, False):
-                    # Beep for success
-                    await self.beep(*self.QUEST_SET)
-                    return True
+        
+        user: User = User.user_from_tag(text)
 
-                else:
-                    # Quest is already set, but beep to notify this
-                    await self.beep(*self.QUEST_ALREADY_SET)
-                    return False
+        await self._queue.put(user.user_id)
+        # Beep for success
+        await self.beep(*self.USER_RECORDED)
+        return True
 
-            case TagType.ONE_TIME_QUEST:
-                # Handle it as a special quest card (one time)
-                if self.handle_quest_card(record.text, True):
-                    # Beep for success
-                    await self.beep(*self.SPECIAL_QUEST_SET)
-                    return True
-
-                else:
-                    # Special quest is already set, but beep to notify this
-                    await self.beep(*self.SPECIAL_QUEST_ALREADY_SET)
-                    return False
-
-            case TagType.USER:
-                if not self._current_quest:
-                    # No quest to record the user
-                    logger.warning("No current quest configured. User discarded")
-                    # Beep to notify this
-                    await self.beep(*self.NO_QUEST_CONFIGURED)
-                    return False
-
-                # Handle it as a user tag
-                if await self.handle_user_tag(record.text):
-                    # Beep for success
-                    await self.beep(*self.USER_RECORDED)
-                    return True
-
-                else:
-                    # User already did quest, but beep to notify this
-                    await self.beep(*self.USER_ALREADY_RECORD)
-                    return False
-
-        # Return False if tag type is invalid (THIS SHOULD NOT LOGICALLY HAPPEN)
-        return False
 
     async def readings_task(self) -> None:
         """
@@ -387,7 +257,7 @@ class Reader:
         with self._device as activated_device:
             while True:
                 try:
-                    tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
+                    tag = await asyncio.to_thread(activated_device.read_tag, user_tag_check)
 
                 except Exception as e:
                     logger.error(f"UNHANDLED ERROR in read_tag loop {e}")
@@ -438,7 +308,7 @@ class Reader:
         # TODO Possible handle other unforeseen errors?
 
 
-def tag_check(tag: nfc.tag.Tag) -> bool:
+def user_tag_check(tag: nfc.tag.Tag) -> bool:
     """
     A check that checks if the given Tag is valid for usage in the Reader class
     :param tag: The Tag instance to be checked
@@ -461,8 +331,7 @@ def tag_check(tag: nfc.tag.Tag) -> bool:
         return False
 
     # Check if the text in the record resolves into a valid TagType
-    tag_type = TagType.tag_type(record.text)
-    if tag_type == TagType.INVALID:
+    if not (record.text.startswith("USER") and len(record.text) > 4):
         return False
 
     return True
