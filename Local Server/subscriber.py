@@ -43,6 +43,7 @@ class Subscriber:
 
         # Start listening for incoming messages
         while True:
+            # TODO Add error handling
             message: ApplicationMessage = await client.deliver_message()
 
             payload = str(message.publish_packet.payload.data, 'utf-8')
