@@ -1,0 +1,56 @@
+import { Button, Offcanvas, Stack } from 'react-bootstrap';
+import { useShoppingCart } from "../context/ShoppingCartContext";
+import { CartItem } from "./CartItem";
+import storeItems from "../data/items.json"
+import { useEffect, useState } from 'react';
+
+
+type ShoppingCartProps = {
+    isOpen: boolean
+}
+
+export function ShoppingCart({ isOpen }: ShoppingCartProps) {
+    const { closeCart, cartItems, getPoints } = useShoppingCart()
+    const [points, setPoints] = useState<number | null>(null);
+
+    useEffect(() => {
+        async function fetchPoints() {
+            const result = await getPoints();
+            setPoints(result);
+        }
+        fetchPoints();
+    }, [getPoints]);
+
+    return (
+        <Offcanvas show={isOpen} onHide={closeCart} placement="end">
+            <Offcanvas.Header closeButton>
+                <Offcanvas.Title>Cart</Offcanvas.Title>
+            </Offcanvas.Header>
+            <Offcanvas.Body>
+                <Stack gap={3}>
+                    {cartItems.map(item => (
+                        <CartItem key={item.id} {...item} />
+                    ))}
+                    <div className="ms-auto fw-bold fs-5">
+                        Points: {points !== null ? points : "scan..."}
+                    </div>
+                    <div className="ms-auto fw-bold fs-5">
+                        Total{" "}
+                        {"Cost" + " " + (cartItems.reduce((total, cartItem) => {
+                            const item = storeItems.find(i => i.id === cartItem.id)
+                            return total + (item?.price || 0) * cartItem.quantity
+                        }, 0))}
+                    </div>
+                </Stack>
+                <Stack>
+                    <Button
+                        variant="outline-primary"
+                        size="sm" onClick={() => { }}>
+                        Send
+                    </Button>
+                </Stack>
+
+            </Offcanvas.Body>
+        </Offcanvas>
+    )
+}

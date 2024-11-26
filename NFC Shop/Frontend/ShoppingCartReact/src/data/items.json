@@ -1,0 +1,104 @@
+[
+    {
+        "id": 1,
+        "name": "مق",
+        "price": 350,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2024/02/Mug_Mockup_2-1.jpg"
+    },
+    {
+        "id": 2,
+        "name": "ماوسباد",
+        "price": 200,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2023/09/Free_Mousepad_Mockup_2-1.jpg"
+    },
+    {
+        "id": 3,
+        "name": "ميدالي",
+        "price": 55,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2022/03/Free_Strap_Keychain_Mockup_2-1.jpg"
+    },
+    {
+        "id": 4,
+        "name": "ميدالية من فابلاب",
+        "price": 5,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2022/03/Free_Strap_Keychain_Mockup_2-1.jpg"
+    },
+    {
+        "id": 5,
+        "name": "كوب",
+        "price": 150,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2017/11/Free_Coffee_Cup_Mockup_2.jpg"
+    },
+    {
+        "id": 6,
+        "name": "توتباق",
+        "price": 150,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2022/08/Free_Tote_Bag_Mockup_2-1.jpg"
+    },
+    {
+        "id": 7,
+        "name": "بروش",
+        "price": 70,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2022/01/Label_on_Grey_Material_2.jpg"
+    },
+    {
+        "id": 8,
+        "name": "ننتيندو سويتش",
+        "price": 9990,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2023/11/Free_Tablet_Mockup_2-1.jpg"
+    },
+    {
+        "id": 9,
+        "name": "سماعات هايبر اكس",
+        "price": 2590,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2024/10/Beer_Can_Mockup_3.jpg"
+    },
+    {
+        "id": 10,
+        "name": "ساعة هواوي",
+        "price": 1290,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2024/10/Beer_Can_Mockup_3.jpg"
+    },
+    {
+        "id": 11,
+        "name": "شاشة قيمنق",
+        "price": 4490,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2024/10/Beer_Can_Mockup_3.jpg"
+    },
+    {
+        "id": 12,
+        "name": "كرسي قيمنق",
+        "price": 1790,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2024/10/Beer_Can_Mockup_3.jpg"
+    },
+    {
+        "id": 13,
+        "name": "فلاش",
+        "price": 230,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2020/05/Free_Pendrive_Mockup_2.jpg"
+    },
+    {
+        "id": 14,
+        "name": "داتا كابل",
+        "price": 219,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2024/10/Beer_Can_Mockup_3.jpg"
+    },
+    {
+        "id": 15,
+        "name": "مقات زيادة ابيض",
+        "price": 350,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2024/10/Beer_Can_Mockup_3.jpg"
+    },
+    {
+        "id": 16,
+        "name": "ساعة",
+        "price": 782,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2021/08/Free_Apple_Watch_Mockup_2.jpg"
+    },
+    {
+        "id": 17,
+        "name": "موبايل ستاند",
+        "price": 178,
+        "imgUrl": "https://mockups-design.com/wp-content/uploads/2023/07/Poster_Mockup_2-1.jpg"
+    }
+]
