@@ -51,6 +51,10 @@ if __name__ == '__main__':
     amqtt_logger = logging.getLogger("amqtt")
     amqtt_logger.setLevel(logging.WARNING)
 
+    # Configure transitions.core logger
+    transitions_core_logger = logging.getLogger("transitions.core")
+    transitions_core_logger.setLevel(logging.WARNING)
+
     # Create a command line parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-nr", "--noreader", help="run on random readings without connecting to a reader",
