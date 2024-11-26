@@ -1,3 +1,7 @@
+import logging
+logger = logging.getLogger(__name__)
+
+
 class PointsManager:
     """
     A class that manages user visits and point allocations using the PointsRepo.
@@ -40,7 +44,7 @@ class PointsManager:
         """
         self.PointsRepo = PointsRepo
         
-    def recordVisit(self, userId, readerId):
+    async def recordVisit(self, visitorId, questId):
         """
         Records a visit by a user to a specific place.
 
@@ -56,9 +60,17 @@ class PointsManager:
             None
         
         """
-        pass
+        try:
+            placePoints = await self._calculatePoints(questId)
+            print(questId)
+            if (placePoints != None):
+                await self._addPoints(visitorId, questId, placePoints)
+            else:
+                logger.error("No quest with id: %s", questId)
+        except Exception as e:
+            logger.error("Error recording visit: %s", str(e))
     
-    def _checkIfUserExists(self, userId):
+    def _checkIfUserExists(self, visitorId):
         """
         Checks if the user exists in the PointsRepo database.
 
@@ -70,7 +82,7 @@ class PointsManager:
         """
         pass
     
-    def _checkIfReaderExists(self, readerId):
+    def _checkIfQuestExists(self, questId):
         """
         Checks if the specified place (reader) exists in the PointsRepo database.
 
@@ -97,7 +109,7 @@ class PointsManager:
         """
         pass
     
-    def _calculatePoints(self, readerId):
+    async def _calculatePoints(self, questId):
         """
         Calculates the points to be awarded for visiting the specified place.
 
@@ -110,9 +122,9 @@ class PointsManager:
             int: The number of points to be awarded for the visit.
     
         """
-        pass
+        return await self.PointsRepo.getQuestPoints(questId)
     
-    def _addPoints(self, userId, readerId, points):
+    async def _addPoints(self, visitorId, questId, points):
         """
         Adds the calculated points to the user's account in the PointsRepo database.
 
@@ -125,4 +137,5 @@ class PointsManager:
             None
         
         """
-        pass
+        await self.PointsRepo.addRecord(visitorId, questId, points)
+        

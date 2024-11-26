@@ -30,7 +30,7 @@ async def main():
     async with asyncio.TaskGroup() as task_group:
         subscriber_task = task_group.create_task(subscribe_and_listen_forever(pipeline))
         processing_task = task_group.create_task(process_logic_forever(pipeline))
-        api_forwarding_task = task_group.create_task(api_forwarding_forever(pipeline))
+        # api_forwarding_task = task_group.create_task(api_forwarding_forever(pipeline))
 
 
 if __name__ == '__main__':

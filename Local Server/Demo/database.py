@@ -1,4 +1,4 @@
-# points repo 
+import aiosqlite
 
 class PointsRepo:
     """
@@ -6,129 +6,121 @@ class PointsRepo:
 
     This class provides methods to add users, retrieve user points, add points,
     check if a user has visited a specific place, and close the database connection.
-
-    Attributes:
-        dbPath (str): The file path to the SQLite database used for storing user points and visits.
-
-    Methods:
-        connect() -> None:
-            Establishes a connection to the SQLite database.
-
-        addUser(userId: str) -> None:
-            Adds a new user to the database.
-
-        getUserPoints(userId: str) -> int:
-            Retrieves the current point balance for the specified user.
-
-        addUserPoints(userId: str, readerId: str, points: int) -> None:
-            Adds points to a user's account after a visit to a specific place.
-
-        hasUserVisitedPlace(userId: str, readerId: str) -> bool:
-            Checks whether the specified user has visited a particular place (represented by `readerId`).
-
-        close() -> None:
-            Closes the connection to the SQLite database.
     """
-    
+
     def __init__(self, dbPath):
         """
         Initializes the PointsRepo class with the path to the SQLite database.
-
         Args:
             dbPath (str): The file path to the SQLite database.
         """
         self.dbPath = dbPath
-    
-    def connect(self):
+        self.db = None  # Database connection
+
+    async def connect(self):
         """
         Establishes a connection to the SQLite database.
-
-        This method should be called before performing any operations on the database.
-        
-        Returns:
-            None
-        
-        Raises:
-            sqlite3.DatabaseError: If the connection to the database cannot be established.
         """
-        pass
-    
-    def addUser(self, userId: str) -> None: 
+        self.db = await aiosqlite.connect(self.dbPath)
+        # await self.db.execute("PRAGMA foreign_keys = ON;")  # Ensure foreign keys are enabled
+
+    async def addVisitor(self, visitorId: str) -> None:
         """
         Adds a new user to the database.
-
-        If the user already exists, this method should handle the situation
-        by not adding the user again.
-
         Args:
             userId (str): The unique identifier for the user to be added.
-
-        Returns:
-            None
-        
         """
-        pass
-    
-    def getUserPoints(self, userId) -> int:
-        """
-        Retrieves the current total points for the specified user.
+        async with self.db.execute("INSERT OR IGNORE INTO Visitor (visitor_id) VALUES (?)", (visitorId,)) as cursor:
+            await self.db.commit()
 
+    async def addQuest(self, questId: str, points: int) -> None:
+        """
+        Adds a place to the database.
         Args:
-            userId (str): The unique identifier for the user whose points are to be retrieved.
-
-        Returns:
-            int: The current point balance for the user.
+            placeId (str): The unique identifier for the place.
+            points (int): The points for visiting the place.
         """
-        pass
-    
-    def addUserPoints(self, userId, readerId, points) -> None:
+        async with self.db.execute("INSERT OR IGNORE INTO Quest (quest_id, points_visiting_now) VALUES (?, ?)", (questId, points)) as cursor:
+            await self.db.commit()
+
+    async def getVisitorPoints(self, visitorId: str) -> int:
         """
-        Adds points to a user's account after they visit a specific place.
-
-        This method updates the user's point balance in the database by adding
-        the specified number of points given they have not visited the place before.
-
-        Args:
-            userId (str): The unique identifier for the user to whom the points will be added.
-            readerId (str): The unique identifier for the place the user visited.
-            points (int): The number of points to be added to the user's account.
-
-        Returns:
-            None
-        """
-        pass
-    
-    def hasUserVisitedPlace(self, userId, readerId) -> bool:
-        """
-         Checks whether the specified user has visited a particular place.
-
-        This method checks if there is a record of the user visiting the specified
-        place (represented by `readerId`) in the database.
-
+        Retrieves the total points of a user.
         Args:
             userId (str): The unique identifier for the user.
-            readerId (str): The unique identifier for the place to check.
-
         Returns:
-            bool: `True` if the user has visited the place, `False` otherwise.
-        
-        Raises:
-            sqlite3.DatabaseError: If there is an issue querying the database.
+            int: The total points of the user.
         """
-        pass
-    
-    """
-        Closes the connection to the SQLite database.
+        async with self.db.execute("SELECT SUM(points) FROM PointRecords WHERE visitor_id = ?", (visitorId,)) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row and row[0] is not None else None
 
-        This method should be called once all database operations have been completed
-        to ensure that resources are properly released.
+    async def addRecord(self, visitorId: str, questId: str, points: int) -> None:
+        """
+        Adds points for a user after visiting a place.
+        Args:
+            userId (str): The unique identifier for the user.
+            placeId (str): The unique identifier for the place.
+            points (int): The points to add.
+        """
+        async with self.db.execute(
+            "INSERT INTO PointRecords (visitor_id, quest_id, points) VALUES (?, ?, ?)", 
+            (visitorId, questId, points)
+        ) as cursor:
+            await self.db.commit()
 
+    async def getQuestPoints(self, questId: str) -> int:
+        """
+        Retrieves the points associated with a place.
+        Args:
+            placeId (str): The unique identifier for the place.
         Returns:
-            None
-    """
-    def getPlacePoints(self, placeId: str) -> int:
-        pass
-    
-    def close(self) -> None:
-        pass
-    
+            int: The points of the place.
+        """
+        async with self.db.execute("SELECT points_visiting_now FROM Quest WHERE quest_id = ?", (questId,)) as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else None
+
+    async def close(self):
+        """
+        Closes the database connection.
+        """
+        if self.db:
+            await self.db.close()
+
+
+# Example usage and testing
+async def test():
+    repo = PointsRepo("database.db")
+    await repo.connect()
+
+    # Add users
+    await repo.addVisitor("user1")
+    await repo.addVisitor("user2")
+    await repo.addVisitor("user3")
+
+    # Add places
+    await repo.addQuest("place1", 10)
+    await repo.addQuest("place2", 20)
+    await repo.addQuest("place3", 30)
+
+    # # Add visits and points
+    # await repo.addUserPoints("user1", "place1", 10)
+    # await repo.addUserPoints("user2", "place1", 10)
+    # await repo.addUserPoints("user2", "place2", 20)
+    # await repo.addUserPoints("user3", "place3", 30)
+
+    # Retrieve data
+    # print("____________________________ONE")
+    # print(await repo.getUserPoints("user2sdf"))  # Expected: 30
+    # print("____________________________TWO")
+    # print(await repo.getPlacePoints("place1"))  # Expected: 10
+    # print("____________________________THREE")
+
+    # Close the database connection
+    await repo.close()
+
+# Run the test
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(test())
