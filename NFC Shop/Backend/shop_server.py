@@ -1,16 +1,15 @@
 import asyncio
+import aiohttp
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
-import aiohttp
 
 
 async def fetch_points():
     url = "http://www.randomnumberapi.com/api/v1.0/random"  # Replace with your API URL
     headers = {"Authorization": "Bearer YOUR_API_KEY"}  # Replace with your API key if needed
-    params = {"min": "100", "max": "1000", "count": "1"} # Replace with your query parameters
+    params = {"min": "100", "max": "1000", "count": "1"}  # Replace with your query parameters
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers, params=params) as response:
@@ -19,6 +18,7 @@ async def fetch_points():
                 return data
             else:
                 print(f"Failed to fetch data: {response.status}, {await response.text()}")
+
 
 class Shop_Server:
     def __init__(self, queue: asyncio.Queue[str]):
@@ -41,18 +41,23 @@ class Shop_Server:
 
     def setup_routes(self):
         """Define the API endpoints."""
+
         @self.app.get('/read_nfc')
         async def read_nfc():
             last_reading = ""
             while not self._queue.empty():
                 last_reading = await self._queue.get()
-            
+
             points = await fetch_points()
 
             return points[0]
+
+        @self.app.put("/purchase_nfc")
+        async def purchase_nfc():
+            # TODO Define this route
+            pass
 
     async def run(self):
         config = Config()
         config.bind = ["0.0.0.0:5000"]
         await serve(self.app, config)
-
