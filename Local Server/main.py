@@ -70,5 +70,13 @@ if __name__ == '__main__':
     # Start logger
     logging.basicConfig(level=logging.INFO)
 
+    # Configure amqtt logger
+    amqtt_logger = logging.getLogger("amqtt")
+    amqtt_logger.setLevel(logging.WARNING)
+
+    # Configure transitions.core logger
+    transitions_core_logger = logging.getLogger("transitions.core")
+    transitions_core_logger.setLevel(logging.WARNING)
+
     # Run main
     asyncio.run(main())
