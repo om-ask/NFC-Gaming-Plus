@@ -47,6 +47,10 @@ if __name__ == '__main__':
     logger = logging.getLogger("pi-reader-main")
     logging.basicConfig(level=logging.DEBUG)
 
+    # Configure amqtt logger
+    amqtt_logger = logging.getLogger("amqtt")
+    amqtt_logger.setLevel(logging.WARNING)
+
     # Create a command line parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-nr", "--noreader", help="run on random readings without connecting to a reader",

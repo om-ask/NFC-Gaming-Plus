@@ -71,7 +71,10 @@ class Publisher:
         """
         while True:
             readings = []
-            await asyncio.sleep(15)
+            await asyncio.sleep(8)
+            if self._queue.empty():
+                logger.debug("No readings to publish")
+                continue
             while not self._queue.empty():
                 readings.append(await self._queue.get())
             await self.publish(readings)
