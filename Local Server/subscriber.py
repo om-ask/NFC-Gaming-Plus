@@ -1,7 +1,7 @@
 import logging
 import asyncio
 
-from amqtt.client import MQTTClient
+from amqtt.client import MQTTClient, ClientException
 from amqtt.mqtt.constants import QOS_2
 from amqtt.session import ApplicationMessage
 
@@ -43,8 +43,20 @@ class Subscriber:
 
         # Start listening for incoming messages
         while True:
-            # TODO Add error handling
-            message: ApplicationMessage = await client.deliver_message()
+            try:
+                message: ApplicationMessage = await client.deliver_message()
 
-            payload = str(message.publish_packet.payload.data, 'utf-8')
-            _ = asyncio.create_task(self.process_input_string(payload))
+                payload = str(message.publish_packet.payload.data, 'utf-8')
+                _ = asyncio.create_task(self.process_input_string(payload))
+
+            except ClientException as ce:
+                logger.error(f"Client exception when receiving message from broker: {ce}")
+
+            except UnicodeDecodeError as de:
+                logger.error(f"Could not decode payload {de}")
+
+            except KeyboardInterrupt:
+                raise
+
+            except Exception as e:
+                logger.error(f"Unhandled exception: {e}")

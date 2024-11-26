@@ -68,7 +68,8 @@ async def main():
 
 if __name__ == '__main__':
     # Start logger
-    logging.basicConfig(level=logging.INFO)
+    formatter = "[%(asctime)s] %(name)s %(levelname)s - %(message)s"
+    logging.basicConfig(level=logging.INFO, format=formatter)
 
     # Configure amqtt logger
     amqtt_logger = logging.getLogger("amqtt")
