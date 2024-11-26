@@ -1,14 +1,27 @@
 import logging
+import asyncio
 
 from amqtt.client import MQTTClient, ClientException
 from amqtt.mqtt.constants import QOS_2
 from amqtt.session import ApplicationMessage
+from readings import NFCReading, User,Quest
 
 from pipeline import PipeLine, Payload
 
 # Prepare the logger
 logger = logging.getLogger(__name__)
 
+async def process_input_string(input_string: str, queue: asyncio.Queue):
+    lines = input_string.splitlines()
+
+    for line in lines:
+        line = line.strip()  # Remove leading/trailing spaces
+        if line.startswith("QUEST"):
+            quest = Quest(quest_id=line[5:])  # Extract everything after "QUEST"
+        elif line.startswith("USER"):
+            user = User(user_id=line[4:])  # Extract everything after "USER"
+            nfc_reading = NFCReading(quest=quest, user=user)
+            await queue.put(nfc_reading)
 
 async def subscribe_and_listen_forever(pipeline: PipeLine):
     client = MQTTClient()
