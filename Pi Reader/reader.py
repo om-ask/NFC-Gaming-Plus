@@ -239,8 +239,9 @@ class Reader:
         :return: None
         """
         try:
-            await asyncio.to_thread(self._device.buzzer_and_led_on, color_command,
-                                    cycle_duration_in_ms, repeat, beep_type)
+            await asyncio.to_thread(self._device.normal_beep)
+            # await asyncio.to_thread(self._device.buzzer_and_led_on, color_command,
+            #                         cycle_duration_in_ms, repeat, beep_type)
 
         except IOError as io_error:
             logger.warning("Device beeping failed due to: " + str(io_error))
