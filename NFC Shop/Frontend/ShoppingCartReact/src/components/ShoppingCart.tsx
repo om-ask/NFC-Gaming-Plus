@@ -2,7 +2,6 @@ import { Button, Offcanvas, Stack } from 'react-bootstrap';
 import { useShoppingCart } from "../context/ShoppingCartContext";
 import { CartItem } from "./CartItem";
 import storeItems from "../data/items.json"
-import { useEffect, useState } from 'react';
 
 
 type ShoppingCartProps = {
@@ -10,16 +9,7 @@ type ShoppingCartProps = {
 }
 
 export function ShoppingCart({ isOpen }: ShoppingCartProps) {
-    const { closeCart, cartItems, getPoints } = useShoppingCart()
-    const [points, setPoints] = useState<number | null>(null);
-
-    useEffect(() => {
-        async function fetchPoints() {
-            const result = await getPoints();
-            setPoints(result);
-        }
-        fetchPoints();
-    }, [getPoints]);
+    const { closeCart, cartItems } = useShoppingCart()
 
     return (
         <Offcanvas show={isOpen} onHide={closeCart} placement="end">
@@ -31,9 +21,6 @@ export function ShoppingCart({ isOpen }: ShoppingCartProps) {
                     {cartItems.map(item => (
                         <CartItem key={item.id} {...item} />
                     ))}
-                    <div className="ms-auto fw-bold fs-5">
-                        Points: {points !== null ? points : "scan..."}
-                    </div>
                     <div className="ms-auto fw-bold fs-5">
                         Total{" "}
                         {"Cost" + " " + (cartItems.reduce((total, cartItem) => {

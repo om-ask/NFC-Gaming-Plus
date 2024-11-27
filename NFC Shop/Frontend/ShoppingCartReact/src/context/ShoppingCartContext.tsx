@@ -15,12 +15,17 @@ type ShoppingCartContext = {
     removeFromCart: (id: number) => void
     cartQuantity: number
     cartItems: CartItem[]
-    getPoints: () => Promise<number>
+    getPoints: () => void
 }
 
 type CartItem = {
     id: number
     quantity: number
+}
+
+type Customer = {
+    id: string
+    points: number
 }
 
 
@@ -33,6 +38,7 @@ export function useShoppingCart() {
 export function ShoppingCartProvider({ children }: ShoppingCartProviderProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [cartItems, setCartItems] = useLocalStorage<CartItem[]>("shopping-cart", [])
+    const [customer, setCustomer] = useLocalStorage<Customer>("customer", { id: "", points: 0 })
 
     const cartQuantity = cartItems.reduce((quantity, item) => item.quantity + quantity, 0)
 
@@ -89,7 +95,15 @@ export function ShoppingCartProvider({ children }: ShoppingCartProviderProps) {
             }
         });
         const data = await response.json();
-        return data;
+        if (data.id == "") {
+            return;
+        }
+        if (data.id !== customer.id) {
+            setCustomer({ id: data.id, points: data.points })
+            return;
+        } else {
+            return;
+        }
     }
 
     return (

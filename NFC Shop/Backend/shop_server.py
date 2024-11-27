@@ -6,7 +6,7 @@ from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
 
-async def fetch_points():
+async def fetch_points(id: str):
     url = "http://www.randomnumberapi.com/api/v1.0/random"  # Replace with your API URL
     headers = {"Authorization": "Bearer YOUR_API_KEY"}  # Replace with your API key if needed
     params = {"min": "100", "max": "1000", "count": "1"}  # Replace with your query parameters
@@ -44,13 +44,16 @@ class Shop_Server:
 
         @self.app.get('/read_nfc')
         async def read_nfc():
+            """Read NFC tag and fetch points.
+              Returns the last reading and points or an empty string if no reading."""
             last_reading = ""
             while not self._queue.empty():
                 last_reading = await self._queue.get()
-
-            points = await fetch_points()
-
-            return points[0]
+            if last_reading:
+                points = await fetch_points(last_reading)
+                return {"id": last_reading, "points": points}
+            else:
+                return {"id": "", "points": 0}
 
         @self.app.put("/purchase_nfc")
         async def purchase_nfc():
