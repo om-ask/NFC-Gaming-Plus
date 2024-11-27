@@ -98,6 +98,7 @@ class Reader:
         :param tag_text: The text is the tag's record
         :return: True if the user was recorded successfully, False otherwise
         """
+        flag = True
         # Create the user from the tag text
         user: User = User.user_from_tag(tag_text)
 
@@ -106,7 +107,7 @@ class Reader:
         if not user_just_recorded:
             # User already recorded previously
             logger.info("User already recorded in quest")
-            return False
+            flag = False
 
         # Create reading and push to queue
         reading: NFCReading = NFCReading(self._current_quest, user)
@@ -118,7 +119,7 @@ class Reader:
             self._special_quest_flag = False
             self.switch_quest_back()
 
-        return True
+        return flag
 
     async def handle_tag(self, tag: nfc.tag.Tag) -> bool:
         """
