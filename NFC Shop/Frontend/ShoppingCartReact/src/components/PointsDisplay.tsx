@@ -1,4 +1,3 @@
-import React from 'react';
 import { useShoppingCart } from "../context/ShoppingCartContext";
 import { useEffect, useState } from 'react';
 
@@ -14,10 +13,22 @@ export function PointsDisplay({ className = "" }: PointsDisplayProps) {
     useEffect(() => {
         async function fetchPoints() {
             await getPoints();
-            setPoints(window.localStorage.getItem("customer") ? JSON.parse(window.localStorage.getItem("customer")!).points : 0);
-            setCustomer(window.localStorage.getItem("customer") ? JSON.parse(window.localStorage.getItem("customer")!) : null);
+            const storedCustomer = window.localStorage.getItem("customer");
+            if (storedCustomer) {
+                const parsedCustomer = JSON.parse(storedCustomer);
+                setPoints(parsedCustomer.points);
+                setCustomer(parsedCustomer);
+            } else {
+                setPoints(0);
+                setCustomer(null);
+            }
         }
-        fetchPoints();
+
+        fetchPoints(); // Initial fetch
+
+        const intervalId = setInterval(fetchPoints, 1000); // Run every second
+
+        return () => clearInterval(intervalId); // Cleanup interval on component unmount
     }, [getPoints]);
 
     if (customer?.id === "") {

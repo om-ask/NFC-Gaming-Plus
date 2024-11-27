@@ -2,7 +2,7 @@
 REM Start the backend
 echo Starting the backend...
 cd backend
-start cmd /k "python main.py -nr"
+start cmd /k "python main.py"
 if %errorlevel% neq 0 (
     echo Failed to start the backend.
     pause
