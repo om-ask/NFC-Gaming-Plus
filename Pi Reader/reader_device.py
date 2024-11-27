@@ -97,10 +97,11 @@ class NFCReaderDevice:
                 logger.debug("Valid tag read and returned")
                 return tag
 
-    def normal_beep(self):
-        self._clf.device.turn_on_led_and_buzzer()
-        time.sleep(0.1)
-        self._clf.device.turn_off_led_and_buzzer()
+    def normal_beep(self, repeat=1):
+        for i in range(repeat):
+            self._clf.device.turn_on_led_and_buzzer()
+            time.sleep(0.1)
+            self._clf.device.turn_off_led_and_buzzer()
 
     def buzzer_and_led_on(self, color_command, cycle_duration_in_ms, repeat, beep_type) -> None:
         """

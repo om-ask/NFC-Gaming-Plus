@@ -143,19 +143,21 @@ class Reader:
                 # Handle it as a quest card
                 if self.handle_quest_card(record.text, False):
                     # Beep for success
-                    await self.beep(*self.QUEST_SET)
+                    # await self.beep(*self.QUEST_SET)
+                    await self.normal_beep(2)
                     return True
 
                 else:
                     # Quest is already set, but beep to notify this
-                    await self.beep(*self.QUEST_ALREADY_SET)
+                    # await self.beep(*self.QUEST_ALREADY_SET)
                     return False
 
             case TagType.ONE_TIME_QUEST:
                 # Handle it as a special quest card (one time)
                 if self.handle_quest_card(record.text, True):
                     # Beep for success
-                    await self.beep(*self.SPECIAL_QUEST_SET)
+                    # await self.beep(*self.SPECIAL_QUEST_SET)
+                    await self.normal_beep(2)
                     return True
 
                 else:
@@ -169,17 +171,20 @@ class Reader:
                     logger.warning("No current quest configured. User discarded")
                     # Beep to notify this
                     await self.beep(*self.NO_QUEST_CONFIGURED)
+                    await self.normal_beep(3)
                     return False
 
                 # Handle it as a user tag
                 if await self.handle_user_tag(record.text):
                     # Beep for success
                     await self.beep(*self.USER_RECORDED)
+                    await self.normal_beep(1)
                     return True
 
                 else:
                     # User already did quest, but beep to notify this
                     await self.beep(*self.USER_ALREADY_RECORD)
+                    await self.normal_beep(3)
                     return False
 
         # Return False if tag type is invalid (THIS SHOULD NOT LOGICALLY HAPPEN)
@@ -213,6 +218,17 @@ class Reader:
                 await asyncio.sleep(5)
                 continue
 
+    async def normal_beep(self, repeat) -> None:
+        try:
+            await asyncio.to_thread(self._device.normal_beep, repeat)
+
+        except IOError as io_error:
+            logger.warning("Device beeping failed due to: " + str(io_error))
+
+        except Exception as e:
+            logger.error(f"UNHANDLED ERROR in beeping {e}")
+            raise
+
     async def beep(self, color_command, cycle_duration_in_ms, repeat, beep_type) -> None:
         """
         Function was taken from https://github.com/nfcpy/nfcpy/issues/245
@@ -239,9 +255,8 @@ class Reader:
         :return: None
         """
         try:
-            await asyncio.to_thread(self._device.normal_beep)
-            # await asyncio.to_thread(self._device.buzzer_and_led_on, color_command,
-            #                         cycle_duration_in_ms, repeat, beep_type)
+            await asyncio.to_thread(self._device.buzzer_and_led_on, color_command,
+                                    cycle_duration_in_ms, repeat, beep_type)
 
         except IOError as io_error:
             logger.warning("Device beeping failed due to: " + str(io_error))
