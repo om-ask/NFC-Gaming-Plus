@@ -170,20 +170,20 @@ class Reader:
                     # No quest to record the user
                     logger.warning("No current quest configured. User discarded")
                     # Beep to notify this
-                    await self.beep(*self.NO_QUEST_CONFIGURED)
+                    # await self.beep(*self.NO_QUEST_CONFIGURED)
                     await self.normal_beep(3)
                     return False
 
                 # Handle it as a user tag
                 if await self.handle_user_tag(record.text):
                     # Beep for success
-                    await self.beep(*self.USER_RECORDED)
+                    # await self.beep(*self.USER_RECORDED)
                     await self.normal_beep(1)
                     return True
 
                 else:
                     # User already did quest, but beep to notify this
-                    await self.beep(*self.USER_ALREADY_RECORD)
+                    # await self.beep(*self.USER_ALREADY_RECORD)
                     await self.normal_beep(3)
                     return False
 
