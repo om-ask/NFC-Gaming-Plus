@@ -20,6 +20,10 @@ export function PointsDisplay({ className = "" }: PointsDisplayProps) {
         fetchPoints();
     }, [getPoints]);
 
+    if (customer === null) {
+        return null;
+    }
+
     return (
         <div className={`border rounded p-3 ${className}`}>
             <div className="ms-auto fw-bold fs-5">

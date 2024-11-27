@@ -32,7 +32,7 @@ export function ShoppingCart({ isOpen }: ShoppingCartProps) {
                 <Stack>
                     <Button
                         variant="outline-primary"
-                        size="sm" onClick={() => { }}>
+                        size="sm" onClick={() => { window.localStorage.setItem("customer", '{"id":"","points":[]}') }}>
                         Send
                     </Button>
                 </Stack>
