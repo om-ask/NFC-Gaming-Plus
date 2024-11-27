@@ -20,7 +20,7 @@ export function PointsDisplay({ className = "" }: PointsDisplayProps) {
         fetchPoints();
     }, [getPoints]);
 
-    if (customer === null) {
+    if (customer?.id === "") {
         return null;
     }
 
