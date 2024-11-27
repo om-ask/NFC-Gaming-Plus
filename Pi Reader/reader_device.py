@@ -92,15 +92,10 @@ class NFCReaderDevice:
         :return: A valid tag that passes the check (if provided)
         """
         while True:
-            try:
-                tag = self.find_tag()
-                if tag and check(tag):
-                    logger.debug("Valid tag read and returned")
-                    return tag
-
-            except Exception as e:
-                logger.error(f"UNHANDLED EXCEPTION in INNER read_tag loop {e}")
-                raise
+            tag = self.find_tag()
+            if tag and check(tag):
+                logger.debug("Valid tag read and returned")
+                return tag
 
     def buzzer_and_led_on(self, color_command, cycle_duration_in_ms, repeat, beep_type) -> None:
         """
