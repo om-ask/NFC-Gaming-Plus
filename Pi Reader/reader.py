@@ -191,27 +191,27 @@ class Reader:
         the queue or switching quests when reading quest cards.
         :return: None
         """
-        with self._device as activated_device:
-            while True:
-                try:
-                    tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
+        while True:
+            try:
+                with self._device as activated_device:
+                    while True:
+                        tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
 
-                except KeyboardInterrupt:
-                    raise
+                        logger.info("Handling tag" + str(tag))
+                        await self.handle_tag(tag)
 
-                except Exception as e:
-                    logger.error(f"UNHANDLED ERROR in read_tag loop {e}")
-                    continue
+            except OSError as e:
+                logger.error(f"{e}")
+                await asyncio.sleep(5)
+                continue
 
-                logger.info("Handling tag" + str(tag))
-                try:
-                    await self.handle_tag(tag)
+            except KeyboardInterrupt:
+                raise
 
-                except KeyboardInterrupt:
-                    raise
-
-                except Exception as e:
-                    logger.error(f"UNHANDLED ERROR in handling tag! {e}")
+            except Exception as e:
+                logger.error(f"{e}")
+                await asyncio.sleep(5)
+                continue
 
     async def beep(self, color_command, cycle_duration_in_ms, repeat, beep_type) -> None:
         """
