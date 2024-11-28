@@ -49,22 +49,19 @@ BROKER_CONFIG = {
 # Main starting point
 async def main():
     # Create and start broker server
-    # server = Broker(BROKER_CONFIG)
-    # logger.info(f"Starting broker. IP address is : {IP_ADDRESS}:{PORT}")
-    # await server.start()
+    
+    server = Broker(BROKER_CONFIG)
+    logger.info(f"Starting broker. IP address is : {IP_ADDRESS}:{PORT}")
 
-    # Create Pipeline Stack
-    pipeline = PipeLine()
-
-    # Create Subscriber
-    logger.info(f"Creating subscriber to topic {TOPIC}")
-    subscriber = Subscriber(TOPIC, IP_ADDRESS, pipeline)
-
+    await server.start()
+    while True:
+        await asyncio.sleep(0)
+   
     # Start listening and responding forever while forwarding to api after processing it:
-    async with asyncio.TaskGroup() as task_group:
-        task_group.create_task(subscriber.mqtt_connect_and_subscribe())
-        processing_task = task_group.create_task(process_logic_forever(pipeline))
-        # api_forwarding_task = task_group.create_task(api_forwarding_forever(pipeline))
+    # async with asyncio.TaskGroup() as task_group:
+    #     # task_group.create_task(subscriber.mqtt_connect_and_subscribe())
+    #     processing_task = task_group.create_task(process_logic_forever(pipeline))
+    #     # api_forwarding_task = task_group.create_task(api_forwarding_forever(pipeline))
 
 
 if __name__ == '__main__':
