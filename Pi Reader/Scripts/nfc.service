@@ -3,7 +3,7 @@ Description=NFCGaming
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/bash -c 'cd /root/NFC-Gaming-Plus/;git stash; git pull origin main;cd /Pi\ Reader/; python3 main.py'
+ExecStart=/usr/bin/bash -c 'cd /root/NFC-Gaming-Plus/;git stash;git stash clear;git pull origin main;cd /Pi\ Reader/; python3 main.py'
 Restart=always
 StandardOutput=journal
 StandardError=journal
