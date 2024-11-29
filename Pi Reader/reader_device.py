@@ -21,6 +21,8 @@ class NFCReaderDevice:
     def __init__(self):
         logger.info("Initializing NFC reader device")
 
+        self._clf = nfc.ContactlessFrontend()
+
     def open(self) -> None:
         """
         Open/Reopen device
