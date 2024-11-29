@@ -379,6 +379,41 @@ function top_users_shortcode( $atts = [], $content = null, $tag = '' ) {
     return $output;
 }
 
+// populate wpdb with the ranking
+
+function get_ranking() {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'attendees';
+    $top_users = $wpdb->get_results(
+        "SELECT first_name, last_name, points FROM $table_name ORDER BY points DESC LIMIT 10"
+    );  
+
+    if (empty($top_users)) {
+        return 'No users found.';
+    }
+
+    $rank = 1;
+    foreach ($top_users as $user) {
+        $wpdb->insert(
+            $rankings_table,
+            array(        
+                'first_name' => $user->first_name,
+                'last_name'  => $user->last_name,
+                'points'     => $user->points,
+                'rank'       => $rank
+            ),
+            array(
+                '%s', 
+                '%s', 
+                '%d', 
+                '%d'  
+            )
+        );
+        $rank++; // Increment the rank
+    }
+}
+
 /**
  * Central location to create all shortcodes.
  */
