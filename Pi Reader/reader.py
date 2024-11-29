@@ -44,6 +44,18 @@ class Reader:
 
         self._special_quest_flag: bool = False
 
+        try:
+            with open("CQuest.txt", "r") as file:
+                current_quest_id = file.read().strip()  # Read and remove any leading/trailing whitespace
+                logger.debug(("Current Quest:" + current_quest_id))
+                self._current_quest = Quest(current_quest_id[5:])
+
+        except FileNotFoundError:
+            logger.error("Error, CQuest.txt not found")
+
+        except OSError as e:
+            logger.error("Error with opening CQuest.txt file")
+
     def set_new_quest(self, quest: Quest) -> bool:
         """
         Sets the given quest as the current quest, handling special quests
@@ -59,6 +71,10 @@ class Reader:
             # Enable special quest flag if the quest is one-time
             logger.info("Special Quest Enabled")
             self._special_quest_flag = True
+
+        else:
+            with open("CQuest.txt", "w") as file:
+                file.write(quest.message())
 
         logger.info("Setting new quest")
 
@@ -98,6 +114,7 @@ class Reader:
         :param tag_text: The text is the tag's record
         :return: True if the user was recorded successfully, False otherwise
         """
+        flag = True
         # Create the user from the tag text
         user: User = User.user_from_tag(tag_text)
 
@@ -106,7 +123,7 @@ class Reader:
         if not user_just_recorded:
             # User already recorded previously
             logger.info("User already recorded in quest")
-            return False
+            flag = False
 
         # Create reading and push to queue
         reading: NFCReading = NFCReading(self._current_quest, user)
@@ -118,7 +135,7 @@ class Reader:
             self._special_quest_flag = False
             self.switch_quest_back()
 
-        return True
+        return flag
 
     async def handle_tag(self, tag: nfc.tag.Tag) -> bool:
         """
@@ -143,19 +160,21 @@ class Reader:
                 # Handle it as a quest card
                 if self.handle_quest_card(record.text, False):
                     # Beep for success
-                    await self.beep(*self.QUEST_SET)
+                    # await self.beep(*self.QUEST_SET)
+                    await self.normal_beep(2)
                     return True
 
                 else:
                     # Quest is already set, but beep to notify this
-                    await self.beep(*self.QUEST_ALREADY_SET)
+                    # await self.beep(*self.QUEST_ALREADY_SET)
                     return False
 
             case TagType.ONE_TIME_QUEST:
                 # Handle it as a special quest card (one time)
                 if self.handle_quest_card(record.text, True):
                     # Beep for success
-                    await self.beep(*self.SPECIAL_QUEST_SET)
+                    # await self.beep(*self.SPECIAL_QUEST_SET)
+                    await self.normal_beep(2)
                     return True
 
                 else:
@@ -168,18 +187,21 @@ class Reader:
                     # No quest to record the user
                     logger.warning("No current quest configured. User discarded")
                     # Beep to notify this
-                    await self.beep(*self.NO_QUEST_CONFIGURED)
+                    # await self.beep(*self.NO_QUEST_CONFIGURED)
+                    await self.normal_beep(3)
                     return False
 
                 # Handle it as a user tag
                 if await self.handle_user_tag(record.text):
                     # Beep for success
-                    await self.beep(*self.USER_RECORDED)
+                    # await self.beep(*self.USER_RECORDED)
+                    await self.normal_beep(1)
                     return True
 
                 else:
                     # User already did quest, but beep to notify this
-                    await self.beep(*self.USER_ALREADY_RECORD)
+                    # await self.beep(*self.USER_ALREADY_RECORD)
+                    await self.normal_beep(3)
                     return False
 
         # Return False if tag type is invalid (THIS SHOULD NOT LOGICALLY HAPPEN)
@@ -191,27 +213,40 @@ class Reader:
         the queue or switching quests when reading quest cards.
         :return: None
         """
-        with self._device as activated_device:
-            while True:
-                try:
-                    tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
+        while True:
+            try:
+                with self._device as activated_device:
+                    # Beep 2 times for activated device
+                    await self.normal_beep(2)
+                    while True:
+                        tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
 
-                except KeyboardInterrupt:
-                    raise
+                        logger.info("Handling tag" + str(tag))
+                        await self.handle_tag(tag)
 
-                except Exception as e:
-                    logger.error(f"UNHANDLED ERROR in read_tag loop {e}")
-                    continue
+            except OSError as e:
+                logger.error(f"{e} Waiting for 5 seconds")
+                await asyncio.sleep(5)
+                continue
 
-                logger.info("Handling tag" + str(tag))
-                try:
-                    await self.handle_tag(tag)
+            except KeyboardInterrupt:
+                raise
 
-                except KeyboardInterrupt:
-                    raise
+            except Exception as e:
+                logger.error(f"{e} Waiting for 5 seconds")
+                await asyncio.sleep(5)
+                continue
 
-                except Exception as e:
-                    logger.error(f"UNHANDLED ERROR in handling tag! {e}")
+    async def normal_beep(self, repeat) -> None:
+        try:
+            await asyncio.to_thread(self._device.normal_beep, repeat)
+
+        except IOError as io_error:
+            logger.warning("Device beeping failed due to: " + str(io_error))
+
+        except Exception as e:
+            logger.error(f"UNHANDLED ERROR in beeping {e}")
+            raise
 
     async def beep(self, color_command, cycle_duration_in_ms, repeat, beep_type) -> None:
         """

@@ -6,3 +6,5 @@ setuptools
 # Asynchronous HTTP Library https://docs.aiohttp.org/en/stable/
 # This will be used to connect to the remote api
 aiohttp
+
+aiosqlite

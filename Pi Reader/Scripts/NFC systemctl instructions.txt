@@ -1,0 +1,49 @@
+How to?
+1. write the configuration file
+2. make sure the paths are correct (you can use commands like 'which bash' or 'which python' and 'whoami' to know the username
+3. enable
+4. start
+5. check logs
+
+// to write the confiuration file
+sudo nano /etc/systemd/system/nfc.service
+
+
+//The configuration file content==============================================
+[Unit]
+Description=NFCGaming
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/bash -c 'git -C /root/NFC-Gaming-Plus/Pi\ Reader/ pull origin main;cd /root/NFC-Gaming-Plus/Pi\ Reader/; /usr/bin/python3 main.py'
+Restart=always
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
+________________________________
+
+// After writing the config file step 1
+sudo systemctl daemon-reload
+
+// enable the service  step 2
+sudo systemctl enable nfc.service
+
+// check process step 3
+sudo systemctl start nfc.service
+
+// check process status
+sudo systemctl status nfc.service
+
+// reload
+sudo systemctl reload nfc.service
+
+// stop
+sudo systemctl stop nfc.service
+
+morashad17/bin/bash -c 'git -C /home/morashad17/mo pull origin main; /usr/bin/python3 /home/morashad17/mo/main.py'
+
+//show logs
+sudo journalctl -u nfc.service -f

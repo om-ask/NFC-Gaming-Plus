@@ -21,13 +21,7 @@ class NFCReaderDevice:
     def __init__(self):
         logger.info("Initializing NFC reader device")
 
-        # Open device
-        self._clf = nfc.ContactlessFrontend("usb")
-
-        # Beep and configure led
-        self.buzzer_and_led_on("blink_red_to_green", 100, 2, "short")
-        self.buzzer_and_led_on("clear", 100, 1, "none")
-        logger.info("Finished initializing NFC reader device")
+        self._clf = nfc.ContactlessFrontend()
 
     def open(self) -> None:
         """
@@ -96,6 +90,12 @@ class NFCReaderDevice:
             if tag and check(tag):
                 logger.debug("Valid tag read and returned")
                 return tag
+
+    def normal_beep(self, repeat=1):
+        for i in range(repeat):
+            self._clf.device.turn_on_led_and_buzzer()
+            time.sleep(0.1)
+            self._clf.device.turn_off_led_and_buzzer()
 
     def buzzer_and_led_on(self, color_command, cycle_duration_in_ms, repeat, beep_type) -> None:
         """

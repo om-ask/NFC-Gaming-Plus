@@ -15,8 +15,6 @@ class Publisher:
     The Publisher class takes an asynchronous queue that gets populated by NFCReading objects, publishing the readings
     to a mqtt broker.
     """
-    CONFIG_FILE = "config.txt"
-    PAYLOAD_FILE = "payload.txt"
 
     def __init__(self, queue: asyncio.Queue[NFCReading]):
         self._queue = queue
@@ -24,14 +22,30 @@ class Publisher:
         self._broker_address = ""
         self._OldPayload = ""
 
-        with open(Publisher.PAYLOAD_FILE, "r") as file:
-            self._OldPayload = file.read()
+        try:
+            with open("payload.txt", "r") as file:
+                self._OldPayload = file.read()
 
-        with open(Publisher.CONFIG_FILE, 'r') as file:
-            lines = file.readlines()  # Returns a list where each element is a line
-            self._broker_address = lines[0].strip()
-            self._publish_topic = lines[1].strip()
-            logger.debug(f"Broker IP {self._broker_address}, and Topic {self._publish_topic}")
+        except FileNotFoundError:
+            logger.error("Error, payload.txt not found")
+
+        except OSError as e:
+            logger.error("Error with opening payload.txt file")
+
+        try:
+            with open('config.txt', 'r') as file:
+                lines = file.readlines()  # Returns a list where each element is a line
+                self._broker_address = lines[0].strip()
+                self._publish_topic = lines[1].strip()
+                logger.debug(f"Broker IP {self._broker_address}, and Topic {self._publish_topic}")
+
+        except FileNotFoundError:
+            logger.error("Error, config.txt not found")
+            raise
+
+        except OSError as e:
+            logger.error("Error with opening config.txt file")
+            raise
 
     async def publish(self, readings: list[NFCReading]) -> bool:
         """
@@ -52,18 +66,25 @@ class Publisher:
         :param readings: The readings to publish to the broker
         :return: True if successful
         """
+
         current_quest = ""
+        # Open the file in read mode and read the string
         payload = self._OldPayload
 
         for s in readings:
             if s.quest_id != current_quest:
                 current_quest = s.quest_id
-                payload += s.quest_string() + "\n"
+            payload += s.quest_string() + "\n"
             payload += s.user_string() + "\n"
+
+            # print(f"Generated NFCReading: user_id={s.user_id}")
+        # print(payload)
         logger.debug(payload)
         battah = await self.publish_with_qos_2(self._broker_address, self._publish_topic, payload)
         return battah
 
+    # TODO Publish every 30 seconds
+    # TODO Handle cases where publishing fails due to connection errors
     async def publish_forever(self) -> None:
         """
         Loops forever waiting for readings and publishing to the mqtt broker
@@ -92,36 +113,43 @@ class Publisher:
         try:
             # Initialize MQTTClient
             client = MQTTClient()
+            # print("MQTTClient initialized.")
 
             # Connect to the broker
+            # print("Attempting to connect...")
             await client.connect(broker_url)
+            # print(f"Connected to broker: {broker_url}")
             logger.debug(f"Connected to broker: {broker_url}")
 
             # Validate and encode the payload
             if not payload or not isinstance(payload, str):
                 raise ValueError("Payload must be a non-empty string.")
             encoded_payload = payload.encode()
+            # print(f"Payload encoded: {encoded_payload}")
 
             # Publish the message
             await client.publish(topic, encoded_payload, qos=QOS_2)
+            # print(f"Message published to topic '{topic}' with QoS 2.")
             # f"Message published to topic"
             logger.info(f"Message published to topic {topic}")
             logger.debug(f"{encoded_payload} sent to {topic}")
             self._OldPayload = ""
-            with open(Publisher.PAYLOAD_FILE, "w") as file:
+            with open("Payload.txt", "w") as file:
                 # Write the desired string to the file
                 file.write("")
             return True
 
         except ConnectException as e:
-            logger.error(f"Error connecting to Broker {e}")
+            # print(f"ConnectException occurred: {e}")
+            logger.error("Error connecting to Broker")
             self._OldPayload = payload
-            with open(Publisher.PAYLOAD_FILE, "w") as file:
+            with open("Payload.txt", "w") as file:
                 # Write the desired string to the file
                 file.write(payload)
             return False
 
         except AttributeError as e:
+            # print(f"AttributeError: {e}. Possible uninitialized or invalid client.")
             logger.error(f"Error {e}")
             self._OldPayload = payload
             with open("Payload.txt", "w") as file:
@@ -130,9 +158,10 @@ class Publisher:
             return False
 
         except Exception as e:
+            # print(f"Unexpected error: {e}")
             logger.error(f"Error {e}")
             self._OldPayload = payload
-            with open(Publisher.PAYLOAD_FILE, "w") as file:
+            with open("Payload.txt", "w") as file:
                 # Write the desired string to the file
                 file.write(payload)
             return False
@@ -141,8 +170,10 @@ class Publisher:
             if client is not None:
                 try:
                     await client.disconnect()
+                    # print("Disconnected from broker.")
                     logger.debug(f"Disconnected From Broker")
                 except Exception as e:
-                    logger.error(f"Error during disconnection: {e}")
-            else:
-                logger.warning("Client was not initialized properly.")
+                    # print(f"Error during disconnection: {e}")
+                    logger.debug(f"Error during disconnection: {e}")
+            # else:
+            #     print("Client was not initialized properly.")
