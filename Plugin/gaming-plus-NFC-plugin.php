@@ -435,5 +435,64 @@ function connect_to_secondDB() {
 
 add_action( 'init', 'connect_to_secondDB' );
 
+function create_global_leaderboard_array() {
+    global $leaderboard;
+    leaderboard = array(
+        1 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        2 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        3 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        4 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        5 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        6 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        7 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        8 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        9 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        10 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        )
+    )
+
+}
+add_action( 'init', 'create_global_leaderboard_array' );
+
+
 ?>
 
