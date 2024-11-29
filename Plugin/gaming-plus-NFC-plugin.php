@@ -8,7 +8,9 @@ Author: Omar
 
 // Register the activation hook to create the attendees table on plugin activation
 register_activation_hook(__FILE__, 'create_attendees_table');
-
+global $userAdded;
+global $$top_users;
+$userAdded = false;
 /**
  * Create the attendees table in the database on plugin activation
  */
@@ -23,6 +25,7 @@ function create_attendees_table() {
         first_name VARCHAR(60) NOT NULL,
         last_name VARCHAR(60) NOT NULL,
         hash VARCHAR(32) NOT NULL,
+        email VARCHAR(32) NOT NULL,
         points INT(11) NOT NULL DEFAULT 0,
         path VARCHAR(255) NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -114,6 +117,7 @@ function add_attendee($request) {
         ),
         array('%s', '%s', '%s', '%s')
     );
+    $userAdded = true;
 
     // Handle potential database insertion errors
     if (false === $result) {
@@ -187,6 +191,7 @@ function add_points_to_attendee($request) {
     // Update points and concatenate path
     $new_points = (int) $user->points + $points_to_add;
     $new_path = $user->path . '' . $path;
+    $userAdded = true;
 
     // Update the attendee's points and path in the database
     $result = $wpdb->update(
@@ -336,52 +341,93 @@ function user_point_shortcode( $atts = [], $content = null, $tag = '' ) {
 	return $o;
 }
 
-// add_action( 'init', 'wporg_shortcodes_init' );
-
-// Add shortcodes
-/**
- * The [top_users] shortcode.
- *
- * Displays the top 10 users based on points.
- *
- * @param array  $atts    Shortcode attributes. Default empty.
- * @param string $content Shortcode content. Default null.
- * @param string $tag     Shortcode tag (name). Default empty.
- * @return string Shortcode output.
- */
-function top_users_shortcode( $atts = [], $content = null, $tag = '' ) {
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'attendees';
-    $top_users = $wpdb->get_results(
-        "SELECT first_name, last_name, points FROM $table_name ORDER BY points DESC LIMIT 10"
-    );
-
-    if (empty($top_users)) {
-        return 'No users found.';
-    }
-
-    $output = $output = '
-    <table">
-        <tr><th>Rank</th><th>Name</th><th>Points</th></tr>';;
-
-    $rank = 1;
-    foreach ($top_users as $user) {
-        $output .= sprintf(
-            '<tr><td>%d</td><td>%s</td><td>%d</td></tr>',
-            $rank++,
-            esc_html($user->first_name . ' ' . $user->last_name),
-            esc_html($user->points)
-        );
-    }
-    $output .= '</table>';
-
-    return $output;
-}
-
 /**
  * Central location to create all shortcodes.
  */
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
+
+// Enqueue JavaScript
+function top_users_enqueue_scripts() {
+    wp_enqueue_script(
+        'top-users-refresh',
+        plugins_url( 'js/top-users-refresh.js', __FILE__ ),
+        array( 'jquery' ),
+        null,
+        true
+    );
+    wp_localize_script( 'top-users-refresh', 'topUsersAjax', array(
+        'ajaxurl' => admin_url( 'admin-ajax.php' )
+    ));
+}
+add_action( 'wp_enqueue_scripts', 'top_users_enqueue_scripts' );
+
+// AJAX handler to fetch top users
+function fetch_top_users_ajax() {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'attendees';
+
+    if (true === $userAdded || empty($top_users)) {
+        $top_users = $wpdb->get_results(
+            "SELECT first_name, last_name, points FROM $table_name ORDER BY points DESC LIMIT 10"
+        );
+        $userAdded = false;
+    }
+
+    if (empty($top_users)) {
+        wp_send_json_error('No users found.');
+    }
+
+    $output = [];
+    $rank = 1;
+    foreach ($top_users as $user) {
+        $output[] = [
+            'rank' => $rank++,
+            'name' => esc_html($user->first_name . ' ' . $user->last_name),
+            'points' => esc_html($user->points)
+        ];
+    }
+
+    wp_send_json_success($output);
+}
+
+add_action( 'wp_ajax_fetch_top_users', 'fetch_top_users_ajax' );
+add_action( 'wp_ajax_nopriv_fetch_top_users', 'fetch_top_users_ajax' );
+
+// Shortcode to display data from local storage
+function top_users_shortcode() {
+    return '
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const storedData = localStorage.getItem("topUsersData");
+                if (storedData) {
+                    const topUsers = JSON.parse(storedData);
+                    var i = 1;
+                    topUsers.forEach(user => {
+                        const userDataRank = document.getElementById("user" + i + "rank");
+                        const userDataName = document.getElementById("user" + i + "name");
+                        const userDataPoints = document.getElementById("user" + i + "points");
+                        if ( userDataName !== null) {
+                            userDataName.innerHTML = user.name;
+                        }
+                        if ( userDataPoints !== null) {
+                            userDataPoints.innerHTML = user.points;
+                        }
+                        if ( userDataRank !== null) {
+                            userDataRank.innerHTML = user.rank;
+                        }
+                        console.log(i);
+                        console.log(user);
+                        i++;
+                    });
+                }
+            });
+        </script>
+    ';
+}
+
 function wporg_shortcodes_init() {
     global $wp; 
     $wp->add_query_var('user'); 
