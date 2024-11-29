@@ -1,0 +1,12 @@
+[Unit]
+Description=NFCGaming
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/bash -c 'git -C /root/NFC-Gaming-Plus/Pi\ Reader/ pull origin main;cd /root/NFC-Gaming-Plus/Pi\ Reader/; /usr/bin/python3 main.py'
+Restart=always
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
