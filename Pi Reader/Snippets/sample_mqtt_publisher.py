@@ -13,11 +13,11 @@ async def test_coro():
     C = MQTTClient()
 
     # Connect to the MQTT broker using the specified IP address and port.
-    await C.connect('mqtt://192.168.0.195:1883')
+    await C.connect('mqtt://192.168.137.2:1883')
     print("Connected", flush=True)
 
     # Wait for all publish tasks to complete.
-    await C.publish('nfc/writer1', b'HELLO WORLD', qos=QOS_2)
+    await C.publish('nfc/read', b'QUESTplace3\nUSERMoRashad@gmail.com', qos=QOS_2)
     print("Messages published", flush=True)
 
     # Log a message indicating that the messages have been published.

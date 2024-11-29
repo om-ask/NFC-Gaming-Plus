@@ -438,6 +438,72 @@ function wporg_shortcodes_init() {
 add_action( 'init', 'wporg_shortcodes_init' );
 
 
+// Connect to gamifier database
+function connect_to_secondDB() {
+    global $secondDB;
+    $secondDB = new wpdb('u453805346_tickets_user','5fHe*m&G4','u453805346_gaming_tickets','127.0.0.1:3306');
+}
+
+add_action( 'init', 'connect_to_secondDB' );
+
+function create_global_leaderboard_array() {
+    global $leaderboard;
+    leaderboard = array(
+        1 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        2 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        3 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        4 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        5 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        6 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        7 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        8 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        9 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        ),
+        10 => array(
+            "first_name" => "",
+            "last_name" => "",
+            "points" => ""
+        )
+    )
+
+}
+add_action( 'init', 'create_global_leaderboard_array' );
+
 
 ?>
 
