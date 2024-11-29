@@ -48,7 +48,7 @@ class Reader:
             with open("CQuest.txt", "r") as file:
                 current_quest_id = file.read().strip()  # Read and remove any leading/trailing whitespace
                 logger.debug(("Current Quest:" + current_quest_id))
-                self._current_quest = Quest(current_quest_id)
+                self._current_quest = Quest(current_quest_id[5:])
 
         except FileNotFoundError:
             logger.error("Error, CQuest.txt not found")
