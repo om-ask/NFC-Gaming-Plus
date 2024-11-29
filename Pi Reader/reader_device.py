@@ -21,14 +21,6 @@ class NFCReaderDevice:
     def __init__(self):
         logger.info("Initializing NFC reader device")
 
-        # Open device
-        self._clf = nfc.ContactlessFrontend("usb")
-
-        # Beep and configure led
-        self.buzzer_and_led_on("blink_red_to_green", 100, 2, "short")
-        self.buzzer_and_led_on("clear", 100, 1, "none")
-        logger.info("Finished initializing NFC reader device")
-
     def open(self) -> None:
         """
         Open/Reopen device

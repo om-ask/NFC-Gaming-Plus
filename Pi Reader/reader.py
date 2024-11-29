@@ -44,6 +44,18 @@ class Reader:
 
         self._special_quest_flag: bool = False
 
+        try:
+            with open("CQuest.txt", "r") as file:
+                current_quest_id = file.read().strip()  # Read and remove any leading/trailing whitespace
+                logger.debug(("Current Quest:" + current_quest_id))
+                self._current_quest = Quest(current_quest_id)
+
+        except FileNotFoundError:
+            logger.error("Error, CQuest.txt not found")
+
+        except OSError as e:
+            logger.error("Error with opening CQuest.txt file")
+
     def set_new_quest(self, quest: Quest) -> bool:
         """
         Sets the given quest as the current quest, handling special quests
@@ -59,6 +71,10 @@ class Reader:
             # Enable special quest flag if the quest is one-time
             logger.info("Special Quest Enabled")
             self._special_quest_flag = True
+
+        else:
+            with open("CQuest.txt", "w") as file:
+                file.write(quest.message())
 
         logger.info("Setting new quest")
 
@@ -200,6 +216,8 @@ class Reader:
         while True:
             try:
                 with self._device as activated_device:
+                    # Beep 2 times for activated device
+                    await self.normal_beep(2)
                     while True:
                         tag = await asyncio.to_thread(activated_device.read_tag, tag_check)
 
@@ -207,7 +225,7 @@ class Reader:
                         await self.handle_tag(tag)
 
             except OSError as e:
-                logger.error(f"{e}")
+                logger.error(f"{e} Waiting for 5 seconds")
                 await asyncio.sleep(5)
                 continue
 
@@ -215,7 +233,7 @@ class Reader:
                 raise
 
             except Exception as e:
-                logger.error(f"{e}")
+                logger.error(f"{e} Waiting for 5 seconds")
                 await asyncio.sleep(5)
                 continue
 

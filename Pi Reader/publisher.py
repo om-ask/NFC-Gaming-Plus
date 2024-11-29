@@ -22,16 +22,30 @@ class Publisher:
         self._broker_address = ""
         self._OldPayload = ""
 
-        with open("Payload.txt", "r") as file:
-            self._OldPayload = file.read()
+        try:
+            with open("payload.txt", "r") as file:
+                self._OldPayload = file.read()
 
+        except FileNotFoundError:
+            logger.error("Error, payload.txt not found")
 
-        # TODO Read ip address and topic specified in config.txt Done
-        with open('config.txt', 'r') as file:
-            lines = file.readlines()  # Returns a list where each element is a line
-            self._broker_address = lines[0].strip()
-            self._publish_topic = lines[1].strip()
-            logger.debug(f"Broker IP {self._broker_address}, and Topic {self._publish_topic}")
+        except OSError as e:
+            logger.error("Error with opening payload.txt file")
+
+        try:
+            with open('config.txt', 'r') as file:
+                lines = file.readlines()  # Returns a list where each element is a line
+                self._broker_address = lines[0].strip()
+                self._publish_topic = lines[1].strip()
+                logger.debug(f"Broker IP {self._broker_address}, and Topic {self._publish_topic}")
+
+        except FileNotFoundError:
+            logger.error("Error, config.txt not found")
+            raise
+
+        except OSError as e:
+            logger.error("Error with opening config.txt file")
+            raise
 
     async def publish(self, readings: list[NFCReading]) -> bool:
         """
@@ -55,15 +69,6 @@ class Publisher:
 
         current_quest = ""
         # Open the file in read mode and read the string
-        try:
-            with open("CQuest.txt", "r") as file:
-                current_quest = file.read().strip()  # Read and remove any leading/trailing whitespace
-                # logger.debug(("Current Quest:"+ current_quest))
-        except FileNotFoundError:
-            logger.error("Error, CQuest.txt not found")
-        except Exception as e:
-            logger.error("Error with opening CQuest.txt file")
-
         payload = self._OldPayload
 
         for s in readings:
@@ -74,8 +79,6 @@ class Publisher:
 
             # print(f"Generated NFCReading: user_id={s.user_id}")
         # print(payload)
-        with open("CQuest.txt", "w") as file:
-            file.write(current_quest)
         logger.debug(payload)
         battah = await self.publish_with_qos_2(self._broker_address, self._publish_topic, payload)
         return battah
