@@ -8,7 +8,7 @@ from pipeline import PipeLine
 from subscriber import Subscriber
 from points_logic import process_logic_forever
 
-# Prepare the logger TODO remove redundant loggers
+# Prepare the logger
 logger = logging.getLogger(__name__)
 
 # Load config file
@@ -22,37 +22,9 @@ PORT = 1883
 HOST_NAME = socket.gethostname()
 IP_ADDRESS = socket.gethostbyname(HOST_NAME)
 
-# Configurations
-BROKER_CONFIG = {
-    "listeners": {
-        "default": {
-            "max-connections": 100,
-            "type": "tcp"
-        },
-        "tcp1": {
-            "bind": f"{IP_ADDRESS}:{PORT}"
-        }
-    },
-    "auth": {
-        "allow-anonymous": True  # TODO Authentication?
-    },
-    "topic-check": {
-        "enabled": True,
-        "acl": {
-            "nfc-reader": [TOPIC],
-            "anonymous": [TOPIC]
-        }
-    }
-}
-
 
 # Main starting point
 async def main():
-    # Create and start broker server
-    # server = Broker(BROKER_CONFIG)
-    # logger.info(f"Starting broker. IP address is : {IP_ADDRESS}:{PORT}")
-    # await server.start()
-
     # Create Pipeline Stack
     pipeline = PipeLine()
 

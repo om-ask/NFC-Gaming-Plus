@@ -8,7 +8,7 @@ from pipeline import PipeLine
 from subscriber import Subscriber
 from points_logic import process_logic_forever
 
-# Prepare the logger TODO remove redundant loggers
+# Prepare the logger
 logger = logging.getLogger(__name__)
 
 # Load config file
