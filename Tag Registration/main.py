@@ -3,9 +3,9 @@ import time
 import requests
 from nfc_writer import NFCReaderWriterDevice
 import os
+import emailAPI
+
 api_key = os.getenv("API_KEY")
-
-
 
 website_url = "https://gaming.kfupm.org/wp-json"
 endpoint = "my-api/v1/register-ticket"
@@ -27,11 +27,12 @@ def main():
                 print("Could not scan ticket")
                 continue
 
-            # TODO Send request to api
             try:
                 data = {"ticket_id": ticket}
                 response = requests.post(url=f"{website_url}/{endpoint}", json=data, headers=headers)
+                print(response.json())
                 email = response.json()["email"]
+                user_id = response.json()["hash"]
 
             except requests.RequestException as e:
                 print()
@@ -43,12 +44,9 @@ def main():
                 print("Could not retrieve email. Please try again")
                 continue
 
-            print(email)
-            # continue
+            account_profile_page = f"https://gaming.kfupm.org/profile?userID={user_id}"
 
-            # email = "omar-ask@outlook.com"
-
-            success_write = activated_device.write_tag("USER"+email)
+            success_write = activated_device.write_tag("USER" + email)
             if success_write:
                 print()
                 print("Successfully written email")
@@ -56,6 +54,16 @@ def main():
             else:
                 print()
                 print("Could not write. Please try again")
+                continue
+
+            params = {
+                "to": email,
+                "sender": "Contact@gaming.kfupm.org",
+                "subject": "Your account",
+                "msg_html": f"<h1>Your account email!</h1><br />{account_profile_page}.",
+                "signature": True  # use my account signature
+            }
+            emailAPI.send_email(params)
 
 
 if __name__ == '__main__':
