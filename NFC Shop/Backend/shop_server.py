@@ -7,15 +7,16 @@ from hypercorn.config import Config
 
 
 async def fetch_points(id: str):
-    url = "http://www.randomnumberapi.com/api/v1.0/random"  # Replace with your API URL
-    headers = {"Authorization": "Bearer YOUR_API_KEY"}  # Replace with your API key if needed
-    params = {"min": "100", "max": "1000", "count": "1"}  # Replace with your query parameters
+    url = "https://gaming.kfupm.org/wp-json/my-api/v1/get-attendee"  # Replace with your API URL
+    # headers = {"Authorization": "Bearer YOUR_API_KEY"}  # Replace with your API key if needed
+    params = {"email": id}  # Replace with your query parameters
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers, params=params) as response:
+        async with session.get(url, params=params) as response:
             if response.status == 200:
                 data = await response.json()  # Parse JSON response
-                return data
+                print(f"Fetched data: {data}")
+                return data["attendee"]["points"]
             else:
                 print(f"Failed to fetch data: {response.status}, {await response.text()}")
 

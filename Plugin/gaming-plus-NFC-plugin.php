@@ -107,6 +107,19 @@ function add_attendee($request) {
 
     // Define the table name and insert the new attendee
     $table_name = $wpdb->prefix . 'attendees';
+    $existing_attendee = $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM $table_name WHERE email = %s", 
+        $email
+    ));
+
+    if ($existing_attendee) {
+        return new WP_REST_Response(array(
+            'error' => 'An attendee with this email already exists.',
+            'attendee_id' => $existing_attendee,
+        ), 409); // 409 Conflict
+    }
+
+
     $result = $wpdb->insert(
         $table_name,
         array(
@@ -131,6 +144,53 @@ function add_attendee($request) {
         'message' => 'Attendee added successfully.',
         'attendee_id' => $wpdb->insert_id,
     ), 201);
+}
+
+add_action('rest_api_init', function () {
+    register_rest_route('attendees/v1', '/get-attendee', array(
+        'methods'  => 'GET',
+        'callback' => 'get_attendee_by_email',
+        'args'     => array(
+            'email' => array(
+                'required' => true,
+                'validate_callback' => function ($param) {
+                    return is_email($param);
+                },
+            ),
+        ),
+    ));
+});
+
+/**
+ * Callback to retrieve attendee information by email
+ */
+function get_attendee_by_email($request) {
+    global $wpdb;
+
+    // Retrieve and sanitize the email from the request
+    $email = sanitize_email($request->get_param('email'));
+
+    // Define the table name
+    $table_name = $wpdb->prefix . 'attendees';
+
+    // Query the database for the attendee with the given email
+    $attendee = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM $table_name WHERE email = %s", 
+        $email
+    ));
+
+    // Handle case where no attendee is found
+    if (null === $attendee) {
+        return new WP_REST_Response(array(
+            'error' => 'Attendee not found.',
+        ), 404);
+    }
+
+    // Return the attendee information
+    return new WP_REST_Response(array(
+        'message' => 'Attendee found.',
+        'attendee' => $attendee,
+    ), 200);
 }
 
 /**
@@ -453,7 +513,7 @@ add_action( 'init', 'connect_to_secondDB' );
 
 function create_global_leaderboard_array() {
     global $leaderboard;
-    leaderboard = array(
+    $leaderboard = array(
         1 => array(
             "first_name" => "",
             "last_name" => "",
@@ -509,11 +569,96 @@ function create_global_leaderboard_array() {
 }
 add_action( 'init', 'create_global_leaderboard_array' );
 
+/**
+ * Register the REST API route to add a new attendee
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('my-api/v1', '/register-ticket', array(
+        'methods' => 'POST',
+        'callback' => 'get_email_add_user',
+        'args' => array(
+            'ticket_id' => array(
+                'required' => true,
+                'validate_callback' => function($param, $request, $key) {
+                    return is_string($param);
+                }
+            )
+        ),
+        'permission_callback' => 'validate_api_key_permission',
+    ));
+});
+
+/**
+ * Callback to add an attendee to the database
+ */
+function get_email_add_user($request) {
+    global $wpdb;
+    global $secondDB;
+
+    // Retrieve and sanitize attendee's first and last name from the request
+    $ticketId = sanitize_text_field($request->get_param('ticket_id'));
+
+    $results = get_userInfo_by_ticketId($ticketId);
+
+    // Generate a unique 32-character hash using MD5 for the attendee
+    $hash = md5($results->name . $results->email . current_time('mysql'));
+
+    // Define the table name and insert the new attendee
+    $table_name = $wpdb->prefix . 'attendees';
+
+    $existing_attendee = $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM $table_name WHERE email = %s", 
+        $email
+    ));
+
+    if ($existing_attendee) {
+        return new WP_REST_Response(array(
+            'error' => 'An attendee with this email already exists.',
+            'attendee_id' => $existing_attendee,
+        ), 409); // 409 Conflict
+    }
+
+    $insert_res = $wpdb->insert(
+        $table_name,
+        array(
+            'name' => $results->name,
+            'email' => $results->email,
+            'hash' => $hash,
+            'created_at' => current_time('mysql')
+        ),
+        array('%s', '%s', '%s', '%s')
+    );
+     $userAdded = true;
+ 
+    // Handle potential database insertion errors
+    if (false === $insert_res) {
+        return new WP_REST_Response(array(
+            'error' => 'Could not add attendee to the database.',
+            'details' => $wpdb->last_error,
+        ), 500);
+    }
+ 
+    return new WP_REST_Response(array(
+        'message' => 'Attendee added successfully.',
+        'attendee_id' => $wpdb->insert_id,
+    ), 201);
+
+    // Check if we have results
+    if ($results) {
+        // Return the results
+        return new WP_REST_Response(array(
+            'message' => 'ticket converted successfully.',
+            'email' => $results->email,
+        ), 200);
+    } else {
+        return [];
+    }
+}
+
 
 function get_userInfo_by_ticketId($ticketId) {
     global $secondDB; 
 
-    
     $query = "
         SELECT u.name, u.email, t.name AS ticket_name
         FROM invoices i
@@ -529,7 +674,7 @@ function get_userInfo_by_ticketId($ticketId) {
     // Check if we have results
     if ($results) {
         // Return the results
-        return $results;
+        return $results[0];
     } else {
         return [];
     }
