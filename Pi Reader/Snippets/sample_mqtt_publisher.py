@@ -13,7 +13,7 @@ async def test_coro():
     C = MQTTClient()
 
     # Connect to the MQTT broker using the specified IP address and port.
-    await C.connect('mqtt://192.168.0.116:1883')
+    await C.connect('mqtt://test.mosquitto.org:1883')
     print("Connected", flush=True)
 
     # Wait for all publish tasks to complete.
