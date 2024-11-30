@@ -17,7 +17,10 @@ async def api_forwarding_forever(pipeline: PipeLine):
             # Get reading
             processed_payload: Payload = await pipeline.get_reading()
 
-            await api_poster.addPoints(processed_payload.user_id, processed_payload.points, processed_payload.quest_id)
+            result = await api_poster.addPoints(processed_payload.user_id, processed_payload.points, processed_payload.quest_id)
+
+            if not result:
+                await pipeline.add_processed_message(processed_payload)
 
         except Exception as e:
             logger.error("Error processing message: ", str(e))

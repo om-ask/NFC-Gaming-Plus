@@ -38,6 +38,9 @@ class APIPoster:
         data = {"user_identifier": userIdentifier, "points": points, "last_quest": questId}
         async with aiohttp.ClientSession() as session:
             response = await self._post(session, endpoint, data)
+            if not response:
+                return False
+
             return response
 
     async def _post(self, session, endpoint, data):
@@ -61,9 +64,11 @@ class APIPoster:
                 async with session.post(url, json=data, headers=headers) as response:
                     if response.status == 200:
                         return await response.json()  # Return JSON response if successful
+
                     else:
                         logging.error(f"Failed request with status {response.status}")
-                        return None  # Return None if status is not 200
+                        return response.status  # Return None if status is not 200
+
             except aiohttp.ClientError as e:
                 retries += 1
                 logging.error(f"Request failed with error: {e}. Retrying {retries}/{self.max_retries}...")
