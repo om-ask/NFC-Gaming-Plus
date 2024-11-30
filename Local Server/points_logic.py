@@ -2,17 +2,8 @@ import logging
 from database import PointsRepo
 from pointsManager import PointsManager
 from pipeline import PipeLine, Payload
-from APIPoster import APIPoster
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 logger = logging.getLogger(__name__)
-url = "http://"
-api_key = os.getenv("API_KEY")
-
-apiPoster = APIPoster(url, api_key)
 
 async def process_logic_forever(pipeline: PipeLine):
     logger.info("Starting process logic")

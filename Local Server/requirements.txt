@@ -2,6 +2,7 @@
 amqtt==0.11.0b1
 
 setuptools
+#python-dotenv
 
 # Asynchronous HTTP Library https://docs.aiohttp.org/en/stable/
 # This will be used to connect to the remote api

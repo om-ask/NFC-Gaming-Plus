@@ -2,8 +2,6 @@ import logging
 import asyncio
 import socket
 
-from amqtt.broker import Broker
-
 from pipeline import PipeLine
 from subscriber import Subscriber
 from points_logic import process_logic_forever
