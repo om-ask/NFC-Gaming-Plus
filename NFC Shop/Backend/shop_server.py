@@ -1,10 +1,14 @@
 import asyncio
 import aiohttp
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
+from pydantic import BaseModel
 
+class PurchaseNFCRequest(BaseModel):
+    email: str
+    points: str
 
 async def fetch_points(id: str):
     url = "https://gaming.kfupm.org/wp-json/my-api/v1/get-attendee"  # Replace with your API URL
@@ -20,6 +24,20 @@ async def fetch_points(id: str):
             else:
                 print(f"Failed to fetch data: {response.status}, {await response.text()}")
 
+async def add_points(email: str, points: int):
+    url = "https://gaming.kfupm.org/wp-json/my-api/v1/add-point"
+    payload = {"user_identifier": email, "points": points}  # Replace with your payload
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload) as response:
+            if response.status == 200:
+                data = await response.json()
+                print(f"Successfully added points: {data}")
+                return data
+            else:
+                error_text = await response.text()
+                print(f"Failed to add points: {response.status}, {error_text}")
+                raise HTTPException(status_code=response.status, detail=error_text)
 
 class Shop_Server:
     def __init__(self, queue: asyncio.Queue[str]):
@@ -56,12 +74,17 @@ class Shop_Server:
             else:
                 return {"id": "", "points": 0}
 
-        @self.app.put("/purchase_nfc")
-        async def purchase_nfc():
-            # TODO Define this route
-            pass
+        @self.app.post("/purchase_nfc")
+        async def purchase_nfc(request: PurchaseNFCRequest):
+            try:
+                print(f"Adding points for {request}...")
+                # Assuming add_points is an async function
+                response = await add_points(request.email, request.points)
+                return {"message": "Points added successfully", "details": response}
+            except HTTPException as e:
+                raise e
 
     async def run(self):
         config = Config()
-        config.bind = ["0.0.0.0:5000"]
+        config.bind = ["localhost:5000"]
         await serve(self.app, config)

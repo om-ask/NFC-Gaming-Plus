@@ -9,7 +9,14 @@ type ShoppingCartProps = {
 }
 
 export function ShoppingCart({ isOpen }: ShoppingCartProps) {
-    const { closeCart, cartItems } = useShoppingCart()
+    const { closeCart, cartItems, sendPoints } = useShoppingCart()
+
+    function sumPoints(cartItems: any) {
+        return cartItems.reduce((total: number, cartItem: { id: number; quantity: number; }) => {
+            const item = storeItems.find(i => i.id === cartItem.id)
+            return total + (item?.price || 0) * cartItem.quantity
+        }, 0)
+    }
 
     return (
         <Offcanvas show={isOpen} onHide={closeCart} placement="end">
@@ -32,7 +39,20 @@ export function ShoppingCart({ isOpen }: ShoppingCartProps) {
                 <Stack>
                     <Button
                         variant="outline-primary"
-                        size="sm" onClick={() => { window.localStorage.setItem("customer", '{"id":"","points":[]}') }}>
+                        size="sm" onClick={() => {
+                            const customer = window.localStorage.getItem("customer")
+                            if (customer) {
+                                const customerObj = JSON.parse(customer);
+                                const points = sumPoints(cartItems);
+                                const response = sendPoints(customerObj.id, "-" + points);
+                                alert("points have been substracted");
+                                window.localStorage.setItem("customer", '{"id":"","points":[]}');
+                                const localCartItems = window.localStorage.getItem("shopping-cart");
+                                if (localCartItems) {
+                                    window.localStorage.setItem("shopping-cart", "[]");
+                                }
+                            }
+                        }}>
                         Send
                     </Button>
                 </Stack>
