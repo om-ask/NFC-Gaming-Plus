@@ -2,8 +2,17 @@ import logging
 from database import PointsRepo
 from pointsManager import PointsManager
 from pipeline import PipeLine, Payload
+from APIPoster import APIPoster
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
+url = "http://"
+api_key = os.getenv("API_KEY")
+
+apiPoster = APIPoster(url, api_key)
 
 async def process_logic_forever(pipeline: PipeLine):
     logger.info("Starting process logic")
@@ -23,7 +32,11 @@ async def process_logic_forever(pipeline: PipeLine):
             user_id = published_payload.user_id.strip()
             quest_id = published_payload.quest_id.strip()
             logger.info("user_id: %s, reader_id: %s", user_id, quest_id)
-            await pointsManager.recordVisit(user_id, quest_id)
+            points = await pointsManager.recordVisit(user_id, quest_id)
+            
+            if points is not None:
+                apiPoster.addPoints(user_id, points, quest_id)
+            
             # Publish to processed queue
             await pipeline.add_processed_message(published_payload)
             logger.info("Put processed message")

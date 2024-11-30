@@ -65,10 +65,13 @@ class PointsManager:
             print(questId)
             if (placePoints != None):
                 await self._addPoints(visitorId, questId, placePoints)
+                return placePoints
             else:
                 logger.error("No quest with id: %s", questId)
+                return None
         except Exception as e:
             logger.error("Error recording visit: %s", str(e))
+            return None
     
     def _checkIfUserExists(self, visitorId):
         """

@@ -1,0 +1,131 @@
+openapi: 3.1.0
+info:
+  title: Gaming Plus NFC Plugin API
+  description: Custom API for managing attendees and adding points to users via NFC.
+  contact:
+    name: Omar
+  version: "1.0"
+servers:
+- url: /
+paths:
+  /my-api/v1/add-attendee:
+    post:
+      summary: Add a new attendee
+      description: Registers a new attendee with a unique hash and initializes points
+        to zero.
+      operationId: addAttendee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/v1_addattendee_body'
+        required: true
+      responses:
+        "201":
+          description: Attendee added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201'
+        "500":
+          description: Server error when adding attendee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+      security:
+      - ApiKeyAuth: []
+  /my-api/v1/add-point:
+    post:
+      summary: Add points to an attendee
+      description: Updates points for an attendee based on their unique hash.
+      operationId: addPoint
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/v1_addpoint_body'
+        required: true
+      responses:
+        "200":
+          description: Points added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_404'
+        "500":
+          description: Server error when adding points
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500_1'
+      security:
+      - ApiKeyAuth: []
+components:
+  schemas:
+    inline_response_500_1:
+      properties:
+        error:
+          example: Failed to update points.
+        details:
+          description: Database error details.
+    inline_response_404:
+      properties:
+        error:
+          example: User not found.
+    v1_addpoint_body:
+      required:
+      - path
+      - points
+      - user_identifier
+      properties:
+        user_identifier:
+          description: The unique hash identifier of the attendee.
+        points:
+          description: Number of points to add to the attendee.
+        path:
+          description: Path parameter to track additional attendee information.
+    inline_response_201:
+      properties:
+        message:
+          example: Attendee added successfully.
+        attendee_id:
+          description: The ID of the newly created attendee.
+    inline_response_200:
+      properties:
+        message:
+          example: Points added successfully.
+        attendee_id:
+          description: The ID of the attendee whose points were updated.
+        added_points:
+          description: The number of points added.
+        new_points:
+          description: The new total points.
+        path:
+          description: Updated path information.
+    v1_addattendee_body:
+      required:
+      - first_name
+      - last_name
+      properties:
+        first_name:
+          description: The first name of the attendee.
+        last_name:
+          description: The last name of the attendee.
+    inline_response_500:
+      properties:
+        error:
+          example: Could not add attendee to the database.
+        details:
+          description: Database error details.
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      name: api_key
+      in: query
