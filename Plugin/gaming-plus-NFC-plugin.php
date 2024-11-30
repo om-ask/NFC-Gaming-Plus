@@ -9,7 +9,7 @@ Author: Omar
 // Register the activation hook to create the attendees table on plugin activation
 register_activation_hook(__FILE__, 'create_attendees_table');
 global $userAdded;
-global $$top_users;
+global $top_users;
 $userAdded = false;
 /**
  * Create the attendees table in the database on plugin activation
@@ -22,12 +22,12 @@ function create_attendees_table() {
     // SQL query to create the attendees table if it doesn't exist
     $sql = "CREATE TABLE IF NOT EXISTS $table_name (
         id BIGINT(20) NOT NULL AUTO_INCREMENT,
-        first_name VARCHAR(60) NOT NULL,
-        last_name VARCHAR(60) NOT NULL,
+        name VARCHAR(60) NOT NULL,
         hash VARCHAR(32) NOT NULL,
         email VARCHAR(32) NOT NULL,
         points INT(11) NOT NULL DEFAULT 0,
         path VARCHAR(255) NOT NULL,
+        last_quest VARCHAR(255) NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         UNIQUE KEY unique_hash (hash)
@@ -75,13 +75,13 @@ add_action('rest_api_init', function () {
         'methods' => 'POST',
         'callback' => 'add_attendee',
         'args' => array(
-            'first_name' => array(
+            'name' => array(
                 'required' => true,
                 'validate_callback' => function($param, $request, $key) {
                     return is_string($param);
                 }
             ),
-            'last_name' => array(
+            'email' => array(
                 'required' => true,
                 'validate_callback' => function($param, $request, $key) {
                     return is_string($param);
@@ -99,19 +99,19 @@ function add_attendee($request) {
     global $wpdb;
 
     // Retrieve and sanitize attendee's first and last name from the request
-    $first_name = sanitize_text_field($request->get_param('first_name'));
-    $last_name = sanitize_text_field($request->get_param('last_name'));
+    $name = sanitize_text_field($request->get_param('name'));
+    $email = sanitize_text_field($request->get_param('email'));
 
     // Generate a unique 32-character hash using MD5 for the attendee
-    $hash = md5($first_name . $last_name . current_time('mysql'));
+    $hash = md5($name . $email . current_time('mysql'));
 
     // Define the table name and insert the new attendee
     $table_name = $wpdb->prefix . 'attendees';
     $result = $wpdb->insert(
         $table_name,
         array(
-            'first_name' => $first_name,
-            'last_name' => $last_name,
+            'name' => $name,
+            'email' => $email,
             'hash' => $hash,
             'created_at' => current_time('mysql')
         ),
@@ -153,7 +153,7 @@ add_action('rest_api_init', function () {
                     return is_string($param);
                 }
             ),
-            'path' => array(
+            'last_quest' => array(
                 'required' => true,
                 'validate_callback' => function($param, $request, $key) {
                     return is_string($param);
@@ -173,12 +173,12 @@ function add_points_to_attendee($request) {
     // Sanitize the incoming parameters
     $user_identifier = sanitize_text_field($request->get_param('user_identifier'));
     $points_to_add = intval($request->get_param('points'));
-    $path = sanitize_text_field($request->get_param('path'));
+    $last_quest = sanitize_text_field($request->get_param('last_quest'));
 
     // Retrieve the attendee from the database based on the identifier
     $table_name = $wpdb->prefix . 'attendees';
     $user = $wpdb->get_row(
-        $wpdb->prepare("SELECT * FROM $table_name WHERE hash = %s", $user_identifier)
+        $wpdb->prepare("SELECT * FROM $table_name WHERE email = %s", $user_identifier)
     );
 
     // If the user isn't found, return an error
@@ -188,9 +188,14 @@ function add_points_to_attendee($request) {
         ), 404);
     }
 
+    if ($last_quest == $user->last_quest) {
+        return new WP_REST_Response(array(
+            'error' => 'User already completed this quest.',
+        ), 400);
+    }
+
     // Update points and concatenate path
     $new_points = (int) $user->points + $points_to_add;
-    $new_path = $user->path . '' . $path;
     $userAdded = true;
 
     // Update the attendee's points and path in the database
@@ -198,7 +203,7 @@ function add_points_to_attendee($request) {
         $table_name,
         array(
             'points' => $new_points,
-            'path' => $new_path,
+            'last_quest' => $last_quest,
         ),
         array('id' => $user->id),
         array('%d', '%s'),
@@ -217,7 +222,7 @@ function add_points_to_attendee($request) {
         'attendee_id' => $user->id,
         'added_points' => $points_to_add,
         'new_points' => $new_points,
-        'path' => $path,
+        'last_quest' => $last_quest,
     ), 200);
 }
 
