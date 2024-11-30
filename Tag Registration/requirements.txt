@@ -1,2 +1,4 @@
 # The fixed fork of nfcpy that works with our ACR122U9 Revision 216
 git+https://github.com/gaitQ/nfcpy.git#egg=nfcpy
+
+requests
