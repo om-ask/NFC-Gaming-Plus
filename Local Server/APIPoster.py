@@ -34,8 +34,8 @@ class APIPoster:
         pass
     
     async def addPoints(self, userIdentifier, points, questId):
-        endpoint = "/my-api/v1/add-point"
-        data = {"user_identifier": userIdentifier, "points": points, "last_quest": questId}
+        endpoint = "my-api/v1/add-point"
+        data = {"user_identifier": userIdentifier, "points": str(points), "last_quest": questId}
         async with aiohttp.ClientSession() as session:
             response = await self._post(session, endpoint, data)
             if not response:
@@ -67,6 +67,7 @@ class APIPoster:
 
                     else:
                         logging.error(f"Failed request with status {response.status}")
+                        logger.error(f"Request body {await response.json()}")
                         return response.status  # Return None if status is not 200
 
             except aiohttp.ClientError as e:
