@@ -2,3 +2,5 @@
 git+https://github.com/gaitQ/nfcpy.git#egg=nfcpy
 
 requests
+
+simplegmail
