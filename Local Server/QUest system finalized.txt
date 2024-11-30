@@ -1,0 +1,34 @@
+
+
+Vanguard:
+Play a VR game (100 points) QUESTVRVANGUARD
+Join the 1v1 challenge (highest) (250 points) QUESTVANGUARDCHALLENGE
+game on the PC (70 points) QUESTVANGUARDPC
+
+Clix:
+Try the F1 Simulator (250 points) QUESTCLIXF1
+Play a VR game (100 points) QUESTCLIXVR
+Game on the PC (70 points)QUESTCLIXPC
+Play a Console Game(70 points)QUESTCLIXCONSOLE
+
+Game Exibition:
+Play a game in the Game Exibition (Must be the game with the Reader currently (70 points) QUESTGAMEXPO (1-5)
+Special Quest (Win a game) (18 points) QUESTGAMEXPOWIN
+
+ITD:
+Attend the booth and check out the creative designs (60 points) QUESTITDATTEND
+Special Quest (Participate in the 3d modelling project) (160 points) QUESTITDCREATE
+
+IE & IE:
+(Special Quest) Play in the Kahoot (100 points) QUESTIEKAHOOT
+Play a board game (70 points) QUESTIEBOARD
+Play a video game (60 points) QUESTIEGAMES
+
+Sponsors & eSports teams:
+Interact with their booth (Must be the booth with the reader) (60 points) QUESTSPONSPORTSINTER
+
+
+Stores:
+Buy whats the worth of <50 SAR (70 points) QUESTSTORECHEAP
+Buy whats the worth of >50 SAR (Special Quest) (100 points)  QUESTSTOREEXPENSIVE
+

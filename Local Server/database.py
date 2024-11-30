@@ -33,14 +33,14 @@ class PointsRepo:
         async with self.db.execute("INSERT OR IGNORE INTO Visitor (visitor_id) VALUES (?)", (visitorId,)) as cursor:
             await self.db.commit()
 
-    async def addQuest(self, questId: str, points: int) -> None:
+    async def addQuest(self, questId: str, questName: str,points: int) -> None:
         """
         Adds a place to the database.
         Args:
             placeId (str): The unique identifier for the place.
             points (int): The points for visiting the place.
         """
-        async with self.db.execute("INSERT OR IGNORE INTO Quest (quest_id, points_visiting_now) VALUES (?, ?)", (questId, points)) as cursor:
+        async with self.db.execute("INSERT OR IGNORE INTO Quest (quest_id, quest_name, points_visiting_now) VALUES (?, ?, ?)", (questId, questName, points)) as cursor:
             await self.db.commit()
 
     async def getVisitorPoints(self, visitorId: str) -> int:
@@ -94,15 +94,31 @@ async def test():
     repo = PointsRepo("database.db")
     await repo.connect()
 
-    # Add users
-    await repo.addVisitor("user1")
-    await repo.addVisitor("user2")
-    await repo.addVisitor("user3")
-
     # Add places
-    await repo.addQuest("place1", 10)
-    await repo.addQuest("place2", 20)
-    await repo.addQuest("place3", 30)
+    await repo.addQuest("VRVANGUARD", "Play a VR game", 100)
+    await repo.addQuest("VANGUARDCHALLENGE", "Join the 1v1 challenge", 250)
+    await repo.addQuest("VANGUARDPC", "Game on the PC", 70)
+
+    await repo.addQuest("CLIXF1", "Try the F1 Simulator", 250)
+    await repo.addQuest("CLIXVR", "Play a VR game", 100)
+    await repo.addQuest("CLIXPC", "Game on the PC", 70)
+    await repo.addQuest("CLIXCONSOLE", "Play a Console Game", 70)
+
+    await repo.addQuest("GAMEXPO", "Play a game in the Game Exhibition (Must be the game with the Reader currently)", 70)
+    await repo.addQuest("GAMEXPOWIN", "Special Quest (Win a game)", 18)
+
+    await repo.addQuest("ITDATTEND", "Attend the booth and check out the creative designs", 60)
+    await repo.addQuest("ITDCREATE", "Special Quest (Participate in the 3D modelling project)", 160)
+
+    await repo.addQuest("IEKAHOOT", "Special Quest (Play in the Kahoot)", 100)
+    await repo.addQuest("IEBOARD", "Play a board game", 70)
+    await repo.addQuest("IEGAMES", "Play a video game", 60)
+
+    await repo.addQuest("SPONSPORTSINTER", "Interact with their booth (Must be the booth with the reader)", 60)
+
+    await repo.addQuest("STORECHEAP", "Buy what's worth <50 SAR", 70)
+    await repo.addQuest("STOREEXPENSIVE", "Buy what's worth >50 SAR (Special Quest)", 100)
+
 
     # # Add visits and points
     # await repo.addUserPoints("user1", "place1", 10)
