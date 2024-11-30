@@ -16,6 +16,7 @@ type ShoppingCartContext = {
     cartQuantity: number
     cartItems: CartItem[]
     getPoints: () => void
+    sendPoints: (id: string, points: string) => void
 }
 
 type CartItem = {
@@ -106,8 +107,20 @@ export function ShoppingCartProvider({ children }: ShoppingCartProviderProps) {
         }
     }
 
+    async function sendPoints(email: string, points: string) {
+        const response = await fetch('http://localhost:5000/purchase_nfc', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email, points: points })
+        });
+
+        return response.json();
+    }
+
     return (
-        <ShoppingCartContext.Provider value={{ openCart, closeCart, getItemQuanity, increaseCartQuantity, decreaseCartQuantity, removeFromCart, cartQuantity, cartItems, getPoints }}>
+        <ShoppingCartContext.Provider value={{ openCart, closeCart, getItemQuanity, increaseCartQuantity, decreaseCartQuantity, removeFromCart, cartQuantity, cartItems, getPoints, sendPoints }}>
             {children}
             <ShoppingCart isOpen={isOpen} />
         </ShoppingCartContext.Provider>
