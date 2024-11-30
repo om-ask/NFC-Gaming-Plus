@@ -4,6 +4,7 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
+
 class APIPoster:
     """
     A class to interact with the remote server API to post data such as attendees and points.
@@ -34,13 +35,11 @@ class APIPoster:
     
     async def addPoints(self, userIdentifier, points, questId):
         endpoint = "/my-api/v1/add-point"
-        data = {"userIdentifier": userIdentifier, "points": points, "questId": questId}
+        data = {"user_identifier": userIdentifier, "points": points, "last_quest": questId}
         async with aiohttp.ClientSession() as session:
             response = await self._post(session, endpoint, data)
             return response
-    
-    
-    
+
     async def _post(self, session, endpoint, data):
         """
         Helper function to send an asynchronous POST request with retries on failure.

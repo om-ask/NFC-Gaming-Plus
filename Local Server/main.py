@@ -7,6 +7,8 @@ from amqtt.broker import Broker
 from pipeline import PipeLine
 from subscriber import Subscriber
 from points_logic import process_logic_forever
+from api_processor import api_forwarding_forever
+
 
 # Prepare the logger
 logger = logging.getLogger(__name__)
@@ -35,8 +37,8 @@ async def main():
     # Start listening and responding forever while forwarding to api after processing it:
     async with asyncio.TaskGroup() as task_group:
         task_group.create_task(subscriber.mqtt_connect_and_subscribe())
-        processing_task = task_group.create_task(process_logic_forever(pipeline))
-        # api_forwarding_task = task_group.create_task(api_forwarding_forever(pipeline))
+        task_group.create_task(process_logic_forever(pipeline))
+        task_group.create_task(api_forwarding_forever(pipeline))
 
 
 if __name__ == '__main__':
