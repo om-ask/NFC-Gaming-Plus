@@ -65,6 +65,7 @@ class PointsManager:
             print(questId)
             if (placePoints != None):
                 await self._addPoints(visitorId, questId, placePoints)
+                print(placePoints)
                 return placePoints
             else:
                 logger.error("No quest with id: %s", questId)
