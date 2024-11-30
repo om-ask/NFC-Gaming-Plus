@@ -35,10 +35,10 @@ async def process_logic_forever(pipeline: PipeLine):
             points = await pointsManager.recordVisit(user_id, quest_id)
             
             if points is not None:
-                apiPoster.addPoints(user_id, points, quest_id)
-            
+                published_payload.set_points(points)
+                await pipeline.add_processed_message(published_payload)
             # Publish to processed queue
-            await pipeline.add_processed_message(published_payload)
+            
             logger.info("Put processed message")
         except Exception as e:
             logger.error("Error processing message: ", str(e))
