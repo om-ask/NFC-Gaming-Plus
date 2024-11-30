@@ -505,5 +505,30 @@ function create_global_leaderboard_array() {
 add_action( 'init', 'create_global_leaderboard_array' );
 
 
+function get_userInfo_by_ticketId($ticketId) {
+    global $secondDB; 
+
+    
+    $query = "
+        SELECT u.name, u.email, t.name AS ticket_name
+        FROM invoices i
+        JOIN bookings b ON i.id = b.invoice_id
+        JOIN users u ON u.id = i.user_id
+        JOIN tickets t ON t.id = b.ticket_id
+        WHERE b.code = %s
+    ";
+
+    
+    $results = $secondDB->get_results($secondDB->prepare($query, $ticketId));
+
+    // Check if we have results
+    if ($results) {
+        // Return the results
+        return $results;
+    } else {
+        return [];
+    }
+}
+
 ?>
 
