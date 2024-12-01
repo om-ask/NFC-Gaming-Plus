@@ -105,7 +105,6 @@ class NFCReaderWriterDevice:
                 if tag:
                     logger.debug("Valid tag found")
                     if tag.ndef is not None:
-                        print("WRITING " + text)
                         try:
                             # Write a new record
                             tag.ndef.records = [ndef.TextRecord(text)]
@@ -114,7 +113,8 @@ class NFCReaderWriterDevice:
                             return True
 
                         except nfc.tag.TagCommandError as e:
-                            print("Retry", e)
+                            print()
+                            print("Retry scanning tag", e)
 
         except KeyboardInterrupt:
             return False

@@ -1,0 +1,1 @@
+winget install --id=Python.Python.3.12  -e
