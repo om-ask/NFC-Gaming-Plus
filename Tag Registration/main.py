@@ -27,7 +27,7 @@ def register_process(api: RegistrationEndpointAPI, writer: NFCReaderWriterDevice
             print()
             print("Could not scan ticket")
             continue
-
+#THISBETTERWORK
         try:
             email, user_id = api.register_ticket(ticket)
 
