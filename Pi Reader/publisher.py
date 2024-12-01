@@ -15,7 +15,7 @@ class Publisher:
     The Publisher class takes an asynchronous queue that gets populated by NFCReading objects, publishing the readings
     to a mqtt broker.
     """
-
+    TIME_BETWEEN_PUBLISH = 2
     def __init__(self, queue: asyncio.Queue[NFCReading]):
         self._queue = queue
         self._publish_topic = ""
@@ -32,6 +32,11 @@ class Publisher:
         except OSError as e:
             logger.error("Error with opening payload.txt file")
 
+        self.read_config(False)
+
+    def read_config(self, no_raise=True):
+        """Updates ip and topic
+        """
         try:
             with open('config.txt', 'r') as file:
                 lines = file.readlines()  # Returns a list where each element is a line
@@ -41,11 +46,13 @@ class Publisher:
 
         except FileNotFoundError:
             logger.error("Error, config.txt not found")
-            raise
+            if not no_raise:
+                raise
 
         except OSError as e:
             logger.error("Error with opening config.txt file")
-            raise
+            if not no_raise:
+                raise
 
     async def publish(self, readings: list[NFCReading]) -> bool:
         """
@@ -83,16 +90,16 @@ class Publisher:
         battah = await self.publish_with_qos_2(self._broker_address, self._publish_topic, payload)
         return battah
 
-    # TODO Publish every 30 seconds
-    # TODO Handle cases where publishing fails due to connection errors
     async def publish_forever(self) -> None:
         """
         Loops forever waiting for readings and publishing to the mqtt broker
         :return: None
         """
+        repeats = 0
         while True:
+            repeats += 1
             readings = []
-            await asyncio.sleep(8)
+            await asyncio.sleep(self.TIME_BETWEEN_PUBLISH)
             if self._queue.empty():
                 logger.debug("No readings to publish")
                 continue
@@ -100,19 +107,23 @@ class Publisher:
                 readings.append(await self._queue.get())
             await self.publish(readings)
 
+            self.read_config()
+
     async def publish_with_qos_2(self, broker_url, topic, payload):
-        mqtt_config = {
-            "keep_alive": 20,
-            "ping_delay": 1,
-            "reconnect_retries": 5,
-            "reconnect_max_interval": 3,
-        }
+        # mqtt_config = {
+        #     "keep_alive": 10,
+        #     "ping_delay": 1,
+        #     "auto_reconnect": False,
+        #     "reconnect_retries": 0,
+        #     "reconnect_max_interval": 3,
+        # }
 
         client = None
 
         try:
             # Initialize MQTTClient
             client = MQTTClient()
+            client.config["auto_reconnect"] = False
             # print("MQTTClient initialized.")
 
             # Connect to the broker
