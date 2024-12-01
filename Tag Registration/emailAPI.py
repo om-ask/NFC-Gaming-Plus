@@ -11,6 +11,5 @@ from simplegmail import Gmail
 # }
 
 def send_email(params):
-    gmail = Gmail() # will open a browser window to ask you to log in and authenticate
+    gmail = Gmail()  # will open a browser window to ask you to log in and authenticate
     message = gmail.send_message(**params)
-    
