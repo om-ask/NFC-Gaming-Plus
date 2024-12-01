@@ -117,7 +117,7 @@ function add_attendee($request) {
     if ($existing_attendee) {
         return new WP_REST_Response(array(
             'error' => 'An attendee with this email already exists.',
-            'attendee_id' => $existing_attendee,
+            'hash' => $hash,
             'email' => $results->email,
         ), 409); // 409 Conflict
     }
@@ -217,7 +217,7 @@ add_action('rest_api_init', function () {
                 }
             ),
             'last_quest' => array(
-                'required' => true,
+                'required' => false,
                 'validate_callback' => function($param, $request, $key) {
                     return is_string($param);
                 }
@@ -250,12 +250,12 @@ function add_points_to_attendee($request) {
             'error' => 'User not found.',
         ), 404);
     }
-
+    if (!empty($last_quest)) {
     if ($last_quest == $user->last_quest) {
         return new WP_REST_Response(array(
             'error' => 'User already completed this quest.',
         ), 400);
-    }
+    }}
 
     // Update points and concatenate path
     $new_points = (int) $user->points + $points_to_add;
@@ -265,12 +265,10 @@ function add_points_to_attendee($request) {
     $result = $wpdb->update(
         $table_name,
         array(
-            'points' => $new_points,
             'last_quest' => $last_quest,
+            'points' => $new_points
         ),
         array('id' => $user->id),
-        array('%d', '%s'),
-        array('%d')
     );
 
     if (false === $result) {
@@ -425,9 +423,13 @@ function get_email_add_user($request) {
     ));
 
     if ($existing_attendee) {
+        $hash = $wpdb->get_var($wpdb->prepare(
+        "SELECT hash FROM $table_name WHERE email = %s",
+        $results->email
+    ));
         return new WP_REST_Response(array(
             'error' => 'An attendee with this email already exists.',
-            'attendee_id' => $existing_attendee,
+            'hash' => $hash,
             'email' => $results->email,
         ), 409); // 409 Conflict
     }
