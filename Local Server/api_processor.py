@@ -16,7 +16,7 @@ async def api_forwarding_forever(pipeline: PipeLine):
     while True:
         try:
             # Get reading
-            processed_payload: Payload = await pipeline.get_reading()
+            processed_payload: Payload = await pipeline.get_processed_message()
 
             result = await api_poster.addPoints(processed_payload.user_id, processed_payload.points, processed_payload.quest_id)
 
