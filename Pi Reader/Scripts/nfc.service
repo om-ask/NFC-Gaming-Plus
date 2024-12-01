@@ -1,15 +1,9 @@
 [Unit]
-Description=NFCGaming
+Description=NFCGamingPython
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/bash -c '\
-    cd /root/NFC-Gaming-Plus/ && \
-    git stash || true && \
-    git pull origin main || true && \
-    cd "Pi Reader" && \
-    python3 main.py\
-'
+ExecStart=/usr/bin/bash -c 'cd /root/NFC-Gaming-Plus; cd "Pi Reader"; python3 main.py;'
 
 Restart=always
 StandardOutput=journal

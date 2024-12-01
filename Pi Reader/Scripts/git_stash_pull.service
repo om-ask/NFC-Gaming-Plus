@@ -1,0 +1,13 @@
+[Unit]
+Description=NFCGamingGit
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/bash -c 'cd /root/NFC-Gaming-Plus/; git stash; git pull origin'
+
+Restart=always
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
